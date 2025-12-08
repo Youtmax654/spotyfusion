@@ -1,0 +1,43 @@
+import { createIcon } from "@chakra-ui/react";
+
+const StatsIcon = createIcon({
+  displayName: "StatsIcon",
+  defaultProps: {
+    fill: "none",
+    viewBox: "0 0 20 20",
+  },
+  path: (
+    <>
+      <path
+        d="M2.5 2.5V15.8333C2.5 16.2754 2.67559 16.6993 2.98816 17.0118C3.30072 17.3244 3.72464 17.5 4.16667 17.5H17.5"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 14.1667V7.5"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.8333 14.1667V4.16675"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.66669 14.1667V11.6667"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+});
+
+export default StatsIcon;

@@ -7,11 +7,12 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 export default defineConfig({
   plugins: [
     tanstackRouter({
- target: 'react',
+      target: 'react',
       autoCodeSplitting: true,
     }),
     react(),
-    tsconfigPaths()],
+    tsconfigPaths()
+  ],
   server: {
     allowedHosts: true
   }
