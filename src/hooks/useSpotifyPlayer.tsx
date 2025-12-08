@@ -39,7 +39,6 @@ interface SpotifyPlayerContextValue {
     isReady: boolean;
     isPlaying: boolean;
     error: string | null;
-    debugInfo: string;
     play: (trackUri: string) => Promise<boolean>;
     pause: () => Promise<void>;
     activatePlayer: () => Promise<void>;
@@ -85,15 +84,13 @@ async function waitForDeviceInAPI(
             if (response.ok) {
                 const data = await response.json();
                 const devices = data.devices || [];
-                console.log(`🔍 Attempt ${attempt}/${maxAttempts}: Found ${devices.length} devices`);
 
                 if (devices.some((d: { id: string }) => d.id === deviceId)) {
-                    console.log('🟢 Device found in API!');
                     return true;
                 }
             }
-        } catch (err) {
-            console.warn(`🟠 Device check attempt ${attempt} failed:`, err);
+        } catch {
+            // Silently retry
         }
 
         if (attempt < maxAttempts) {
@@ -112,7 +109,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
     const [isReady, setIsReady] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [debugInfo, setDebugInfo] = useState<string>('Initialisation...');
 
     const playerRef = useRef<SpotifyPlayerInstance | null>(null);
     const deviceIdRef = useRef<string | null>(null);
@@ -134,7 +130,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
     // Create and connect player
     const createPlayer = useCallback(async (): Promise<boolean> => {
         if (isConnectingRef.current) {
-            console.log('🟠 Already connecting, skipping...');
             return false;
         }
 
@@ -143,7 +138,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         try {
             // Disconnect existing player if any
             if (playerRef.current) {
-                console.log('🟠 Disconnecting existing player...');
                 playerRef.current.disconnect();
                 playerRef.current = null;
                 deviceIdRef.current = null;
@@ -151,20 +145,14 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 setIsReady(false);
             }
 
-            setDebugInfo('Vérification du token...');
             const token = await getFreshToken();
 
             if (!token) {
                 setError('Pas de token d\'accès. Veuillez vous reconnecter.');
-                setDebugInfo('Erreur: Pas de token');
                 return false;
             }
 
-            setDebugInfo('Attente du SDK Spotify...');
             await waitForSpotifySDK();
-
-            setDebugInfo('Création du player...');
-            console.log('🟢 Creating new Spotify Player...');
 
             const player = new window.Spotify.Player({
                 name: 'SpotyFusion Blind Test',
@@ -180,29 +168,20 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
             // Set up event listeners
             player.addListener('initialization_error', (data: unknown) => {
                 const { message } = data as { message: string };
-                console.error('🔴 Init error:', message);
                 setError(`Erreur init: ${message}`);
-                setDebugInfo(`Init error: ${message}`);
             });
 
             player.addListener('authentication_error', (data: unknown) => {
                 const { message } = data as { message: string };
-                console.error('🔴 Auth error:', message);
                 setError(`Erreur auth: ${message}. Veuillez vous déconnecter et reconnecter.`);
-                setDebugInfo(`Auth error: ${message}`);
             });
 
-            player.addListener('account_error', (data: unknown) => {
-                const { message } = data as { message: string };
-                console.error('🔴 Account error:', message);
+            player.addListener('account_error', () => {
                 setError(`Compte Premium requis pour le streaming`);
-                setDebugInfo(`Account error: ${message}`);
             });
 
-            player.addListener('playback_error', (data: unknown) => {
-                const { message } = data as { message: string };
-                console.error('🟡 Playback error:', message);
-                setDebugInfo(`Playback error: ${message}`);
+            player.addListener('playback_error', () => {
+                // Silently handle playback errors
             });
 
             // Create a promise that resolves when player is ready
@@ -214,39 +193,27 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 player.addListener('ready', (data: unknown) => {
                     clearTimeout(timeout);
                     const { device_id } = data as { device_id: string };
-                    console.log('🟢 Spotify Player ready with Device ID:', device_id);
                     resolve(device_id);
                 });
 
-                player.addListener('not_ready', (data: unknown) => {
-                    const { device_id } = data as { device_id: string };
-                    console.log('🟠 Device went offline:', device_id);
+                player.addListener('not_ready', () => {
                     setIsReady(false);
-                    setDebugInfo('Device hors ligne - reconnexion nécessaire');
                 });
             });
 
             player.addListener('player_state_changed', (state: unknown) => {
                 if (state) {
-                    const playerState = state as { paused: boolean; track_window?: { current_track?: { name: string } } };
+                    const playerState = state as { paused: boolean };
                     setIsPlaying(!playerState.paused);
-                    const trackName = playerState.track_window?.current_track?.name || 'Unknown';
-                    console.log('🎵 State changed:', playerState.paused ? 'Paused' : 'Playing', trackName);
                 }
             });
 
-            setDebugInfo('Connexion au player...');
             const connected = await player.connect();
 
             if (!connected) {
-                console.error('🔴 Failed to connect player');
                 setError('Échec de connexion au player');
-                setDebugInfo('Échec connexion');
                 return false;
             }
-
-            console.log('🟢 Player connected, waiting for ready event...');
-            setDebugInfo('Connecté! En attente du device...');
 
             playerRef.current = player;
 
@@ -254,30 +221,21 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
             const newDeviceId = await readyPromise;
 
             // Now wait for the device to be visible in the API
-            setDebugInfo('Vérification visibilité du device...');
             const currentToken = await getFreshToken();
 
             if (currentToken) {
-                const visible = await waitForDeviceInAPI(newDeviceId, currentToken, 20, 500);
-
-                if (!visible) {
-                    console.warn('� Device never became visible in API, but continuing anyway...');
-                    setDebugInfo('Device créé (API lente)');
-                }
+                await waitForDeviceInAPI(newDeviceId, currentToken, 20, 500);
             }
 
             deviceIdRef.current = newDeviceId;
             setDeviceId(newDeviceId);
             setIsReady(true);
             setError(null);
-            setDebugInfo(`Player prêt! Device: ${newDeviceId.substring(0, 8)}...`);
 
             return true;
 
         } catch (err) {
-            console.error('🔴 Player creation error:', err);
             setError(`Erreur création player: ${err}`);
-            setDebugInfo(`Erreur: ${err}`);
             return false;
         } finally {
             isConnectingRef.current = false;
@@ -296,15 +254,11 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
             let token = getAccessToken();
 
             if (!token) {
-                console.log('🟡 Token not available yet, waiting...');
-                setDebugInfo('En attente du token...');
-
                 // Wait up to 5 seconds for token to become available
                 for (let i = 0; i < 50; i++) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                     token = getAccessToken();
                     if (token) {
-                        console.log('🟢 Token now available after waiting');
                         break;
                     }
                 }
@@ -314,8 +268,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 isInitializedRef.current = true;
                 createPlayer();
             } else {
-                console.log('🟠 No token after waiting, will retry when user navigates');
-                setDebugInfo('En attente de connexion...');
                 setError(null); // Don't show error, just wait
             }
         };
@@ -325,7 +277,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         // Cleanup only when the entire app unmounts
         return () => {
             if (playerRef.current) {
-                console.log('🔴 Provider unmounting, disconnecting player...');
                 playerRef.current.disconnect();
             }
         };
@@ -335,28 +286,21 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         if (playerRef.current) {
             try {
                 await playerRef.current.activateElement();
-                console.log('🟢 Player element activated');
-            } catch (err) {
-                console.error('🔴 Activate error:', err);
+            } catch {
+                // Silently handle activation errors
             }
         }
     }, []);
 
     const reconnect = useCallback(async () => {
-        console.log('🔄 Manual reconnect requested');
-        setDebugInfo('Reconnexion en cours...');
         await createPlayer();
     }, [createPlayer]);
 
     const play = useCallback(async (trackUri: string): Promise<boolean> => {
         const currentDeviceId = deviceIdRef.current;
 
-        console.log('🎵 Attempting to play:', trackUri);
-        console.log('📱 Device ID:', currentDeviceId);
-
         if (!currentDeviceId) {
             setError('Player non prêt - pas de device ID');
-            setDebugInfo('Erreur: Pas de device ID');
             return false;
         }
 
@@ -367,10 +311,7 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         }
 
         try {
-            setDebugInfo('Transfert vers le device...');
-
             // Step 1: Transfer playback to this device
-            console.log('📱 Transferring playback to device...');
             const transferResponse = await fetch('https://api.spotify.com/v1/me/player', {
                 method: 'PUT',
                 headers: {
@@ -383,14 +324,9 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 }),
             });
 
-            console.log('📱 Transfer response:', transferResponse.status);
-
             if (transferResponse.status === 204 || transferResponse.status === 200) {
                 await new Promise(resolve => setTimeout(resolve, 500));
             } else if (transferResponse.status === 404) {
-                console.log('🟠 Device not found during transfer, trying reconnect...');
-                setDebugInfo('Device perdu, reconnexion...');
-
                 const reconnected = await createPlayer();
                 if (!reconnected || !deviceIdRef.current) {
                     setError('Reconnexion échouée');
@@ -411,15 +347,12 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 });
 
                 if (retryTransfer.status !== 204 && retryTransfer.status !== 200) {
-                    console.error('🔴 Retry transfer failed:', retryTransfer.status);
                     setError('Impossible de transférer la lecture');
                     return false;
                 }
 
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
-
-            setDebugInfo('Lancement lecture...');
 
             // Step 2: Play the track
             const playResponse = await fetch(
@@ -437,19 +370,12 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 }
             );
 
-            console.log('🎵 Play response status:', playResponse.status);
-
             if (playResponse.status === 204 || playResponse.status === 200) {
-                console.log('🟢 Play command successful!');
-                setDebugInfo('Lecture démarrée!');
                 return true;
             }
 
             // Handle 404 - try one more time with fresh transfer
             if (playResponse.status === 404) {
-                console.log('🟠 Play 404, attempting fresh transfer and retry...');
-                setDebugInfo('Erreur 404, nouvelle tentative...');
-
                 await fetch('https://api.spotify.com/v1/me/player', {
                     method: 'PUT',
                     headers: {
@@ -480,31 +406,20 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                 );
 
                 if (retryPlay.status === 204 || retryPlay.status === 200) {
-                    console.log('🟢 Retry play successful!');
-                    setDebugInfo('Lecture démarrée (retry)!');
                     return true;
                 }
-
-                const retryError = await retryPlay.text();
-                console.error('🔴 Retry play failed:', retryPlay.status, retryError);
             }
 
             if (playResponse.status === 403) {
                 setError("Erreur 403: Premium requis / Session expirée");
-                setDebugInfo("Erreur 403: Premium/Token");
                 return false;
             }
 
-            const errorText = await playResponse.text();
-            console.error('🔴 Play Failed:', errorText);
             setError(`Erreur lecture: ${playResponse.status}`);
-            setDebugInfo(`Echec lecture (${playResponse.status})`);
             return false;
 
-        } catch (err) {
-            console.error('🔴 Play exception:', err);
+        } catch {
             setError('Erreur réseau');
-            setDebugInfo(`Exception: ${err}`);
             return false;
         }
     }, [getFreshToken, createPlayer]);
@@ -513,9 +428,8 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         if (playerRef.current) {
             try {
                 await playerRef.current.pause();
-                setDebugInfo('Pausé');
-            } catch (err) {
-                console.error('🔴 Pause error:', err);
+            } catch {
+                // Silently handle pause errors
             }
         }
     }, []);
@@ -525,7 +439,6 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
         isReady,
         isPlaying,
         error,
-        debugInfo,
         play,
         pause: pausePlayback,
         activatePlayer,

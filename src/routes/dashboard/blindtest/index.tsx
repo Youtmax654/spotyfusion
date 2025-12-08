@@ -69,22 +69,32 @@ function BlindTestPage() {
 
   // Timer logic
   useEffect(() => {
-    if (gameState === 'playing' && !answered && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
+    if (gameState !== 'playing' || answered) {
+      return;
     }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          // Time's up - process as wrong answer
+          clearInterval(timerRef.current!);
+          // Use setTimeout to avoid state update during render
+          setTimeout(() => {
+            if (!answered) {
+              processAnswer(null);
+            }
+          }, 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, answered, currentQuestionIndex]);
-
-  // Handle time running out
-  useEffect(() => {
-    if (timeLeft === 0 && gameState === 'playing' && !answered) {
-      handleTimeOut();
-    }
-  }, [timeLeft, gameState, answered]);
 
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -149,11 +159,6 @@ function BlindTestPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTimeOut = () => {
-    if (answered) return;
-    processAnswer(null);
   };
 
   const processAnswer = async (selectedTrack: SpotifyTrack | null) => {
