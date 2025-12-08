@@ -1,9 +1,530 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect, useState, useRef } from 'react';
+import { Box, Flex, Text, Button, Image, VStack, HStack, Icon, Spinner, Center, Badge } from '@chakra-ui/react';
+import { isAuthenticated } from '../../../services/spotifyAuth';
+import {
+  getTopArtists,
+  getTopTracks,
+  getRecentlyPlayed,
+  type SpotifyArtist,
+  type SpotifyTrack,
+  type RecentlyPlayedItem,
+} from '../../../services/spotifyApi';
+import { FaChevronLeft, FaChevronRight, FaClock } from 'react-icons/fa';
 
-export const Route = createFileRoute("/dashboard/stats/")({
-  component: RouteComponent,
+export const Route = createFileRoute('/dashboard/stats/')({
+  component: StatsPage,
 });
 
-function RouteComponent() {
-  return <div>Hello "/dashboard/stats/"!</div>;
+type TimeRange = 'short_term' | 'medium_term' | 'long_term';
+
+const timeRangeLabels: Record<TimeRange, string> = {
+  short_term: '4 semaines',
+  medium_term: '6 mois',
+  long_term: 'Tout le temps',
+};
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+
+  if (diffMins < 60) {
+    return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
+  } else if (diffHours < 24) {
+    return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
+  } else {
+    const diffDays = Math.floor(diffHours / 24);
+    return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+  }
+}
+
+function StatsPage() {
+  const navigate = useNavigate();
+  const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
+  const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
+  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>([]);
+  const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
+  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
+
+  const artistsGridRef = useRef<HTMLDivElement>(null);
+  const tracksGridRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
+  // Drag to scroll state
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftPos = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement | null>) => {
+    if (!ref.current) return;
+    isDragging.current = true;
+    startX.current = e.pageX - ref.current.offsetLeft;
+    scrollLeftPos.current = ref.current.scrollLeft;
+    ref.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseUp = (ref: React.RefObject<HTMLDivElement | null>) => {
+    isDragging.current = false;
+    if (ref.current) {
+      ref.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseLeave = (ref: React.RefObject<HTMLDivElement | null>) => {
+    isDragging.current = false;
+    if (ref.current) {
+      ref.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement | null>) => {
+    if (!isDragging.current || !ref.current) return;
+    e.preventDefault();
+    const x = e.pageX - ref.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    ref.current.scrollLeft = scrollLeftPos.current - walk;
+  };
+
+  // Scroll button visibility state
+  const [artistsCanScrollLeft, setArtistsCanScrollLeft] = useState(false);
+  const [artistsCanScrollRight, setArtistsCanScrollRight] = useState(true);
+  const [tracksCanScrollLeft, setTracksCanScrollLeft] = useState(false);
+  const [tracksCanScrollRight, setTracksCanScrollRight] = useState(true);
+
+  const updateScrollButtons = (ref: React.RefObject<HTMLDivElement | null>, setLeft: (v: boolean) => void, setRight: (v: boolean) => void) => {
+    if (!ref.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = ref.current;
+    setLeft(scrollLeft > 0);
+    setRight(scrollLeft < scrollWidth - clientWidth - 1);
+  };
+
+  useEffect(() => {
+    const artistsEl = artistsGridRef.current;
+    const tracksEl = tracksGridRef.current;
+
+    const handleArtistsScroll = () => updateScrollButtons(artistsGridRef, setArtistsCanScrollLeft, setArtistsCanScrollRight);
+    const handleTracksScroll = () => updateScrollButtons(tracksGridRef, setTracksCanScrollLeft, setTracksCanScrollRight);
+
+    artistsEl?.addEventListener('scroll', handleArtistsScroll);
+    tracksEl?.addEventListener('scroll', handleTracksScroll);
+
+    // Initial check
+    handleArtistsScroll();
+    handleTracksScroll();
+
+    return () => {
+      artistsEl?.removeEventListener('scroll', handleArtistsScroll);
+      tracksEl?.removeEventListener('scroll', handleTracksScroll);
+    };
+  }, [topArtists, topTracks]);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate({ to: '/' });
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        // Check if recently played is already cached in sessionStorage
+        const cachedRecentlyPlayed = sessionStorage.getItem('spotyfusion_recently_played');
+
+        // Always fetch artists and tracks (they depend on timeRange)
+        const [artists, tracks] = await Promise.all([
+          getTopArtists(timeRange, 10),
+          getTopTracks(timeRange, 10),
+        ]);
+
+        setTopArtists(artists);
+        setTopTracks(tracks);
+
+        // For recently played, use cache if available, otherwise fetch and cache
+        if (cachedRecentlyPlayed) {
+          setRecentlyPlayed(JSON.parse(cachedRecentlyPlayed));
+        } else {
+          const recent = await getRecentlyPlayed(5);
+          setRecentlyPlayed(recent);
+          // Cache for this session
+          sessionStorage.setItem('spotyfusion_recently_played', JSON.stringify(recent));
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate, timeRange]);
+
+  const handleTimeRangeChange = async (newRange: TimeRange) => {
+    setTimeRange(newRange);
+    setDataLoading(true);
+    try {
+      const [artists, tracks] = await Promise.all([
+        getTopArtists(newRange, 10),
+        getTopTracks(newRange, 10),
+      ]);
+      setTopArtists(artists);
+      setTopTracks(tracks);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Center flex={1} p={8}>
+        <VStack gap={4}>
+          <Spinner size="xl" color="spotify.green" />
+          <Text color="spotify.lightGray">Chargement de vos statistiques...</Text>
+        </VStack>
+      </Center>
+    );
+  }
+
+  return (
+    <Box p={8} overflowX="hidden">
+      {/* Header */}
+      <Box mb={8}>
+        <Text fontSize="2xl" fontWeight="bold" color="spotify.white" mb={2}>
+          Vos Statistiques
+        </Text>
+        <Text color="spotify.lightGray">
+          Découvrez vos artistes et morceaux préférés
+        </Text>
+      </Box>
+
+      {/* Time Range Tabs */}
+      <HStack gap={2} mb={8}>
+        {(Object.keys(timeRangeLabels) as TimeRange[]).map((range) => (
+          <Button
+            key={range}
+            size="sm"
+            px={5}
+            py={2}
+            h="auto"
+            fontSize="sm"
+            fontWeight="medium"
+            borderRadius="full"
+            border="1px solid"
+            borderColor={timeRange === range ? 'spotify.white' : 'whiteAlpha.300'}
+            bg={timeRange === range ? 'spotify.white' : 'transparent'}
+            color={timeRange === range ? 'spotify.black' : 'spotify.white'}
+            onClick={() => handleTimeRangeChange(range)}
+            _hover={{
+              bg: timeRange === range ? 'spotify.white' : 'whiteAlpha.100',
+            }}
+          >
+            {timeRangeLabels[range]}
+          </Button>
+        ))}
+      </HStack>
+
+      {/* Top Artists */}
+      <Box mb={10}>
+        <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
+          Top 10 Artistes
+        </Text>
+        <Box position="relative" overflow="hidden">
+          <Flex
+            ref={artistsGridRef}
+            gap={5}
+            overflowX="auto"
+            pb={4}
+            opacity={dataLoading ? 0.5 : 1}
+            transition="opacity 0.2s"
+            cursor="grab"
+            userSelect="none"
+            onMouseDown={(e) => handleMouseDown(e, artistsGridRef)}
+            onMouseUp={() => handleMouseUp(artistsGridRef)}
+            onMouseLeave={() => handleMouseLeave(artistsGridRef)}
+            onMouseMove={(e) => handleMouseMove(e, artistsGridRef)}
+            css={{
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {topArtists.map((artist, index) => (
+              <VStack key={artist.id} minW="115px" gap={3}>
+                <Box position="relative" w="115px" h="115px">
+                  <Image
+                    src={artist.images[0]?.url || '/default-artist.png'}
+                    alt={artist.name}
+                    w="100%"
+                    h="100%"
+                    borderRadius="full"
+                    objectFit="cover"
+                    border="3px solid transparent"
+                    transition="border-color 0.2s"
+                    _hover={{ borderColor: 'spotify.green' }}
+                  />
+                  <Badge
+                    position="absolute"
+                    bottom={0}
+                    right={0}
+                    bg="spotify.green"
+                    color="spotify.black"
+                    fontSize="xs"
+                    fontWeight="bold"
+                    px={2}
+                    borderRadius="sm"
+                  >
+                    #{index + 1}
+                  </Badge>
+                </Box>
+                <Text fontSize="xs" color="spotify.white" textAlign="center" maxW="115px" truncate>
+                  {artist.name}
+                </Text>
+              </VStack>
+            ))}
+          </Flex>
+          {dataLoading && (
+            <Center position="absolute" top={0} left={0} right={0} bottom={0}>
+              <Spinner size="lg" color="spotify.green" />
+            </Center>
+          )}
+          <Button
+            position="absolute"
+            left={0}
+            top="50%"
+            transform="translateY(-70%)"
+            size="sm"
+            w="40px"
+            h="40px"
+            borderRadius="full"
+            bg="blackAlpha.700"
+            color="spotify.white"
+            onClick={() => scrollLeft(artistsGridRef)}
+            disabled={!artistsCanScrollLeft}
+            opacity={artistsCanScrollLeft ? 1 : 0}
+            pointerEvents={artistsCanScrollLeft ? 'auto' : 'none'}
+            transition="opacity 0.2s"
+            _hover={{ bg: 'blackAlpha.800', transform: 'translateY(-70%) scale(1.1)' }}
+          >
+            <Icon as={FaChevronLeft} />
+          </Button>
+          <Button
+            position="absolute"
+            right={0}
+            top="50%"
+            transform="translateY(-70%)"
+            size="sm"
+            w="40px"
+            h="40px"
+            borderRadius="full"
+            bg="blackAlpha.700"
+            color="spotify.white"
+            onClick={() => scrollRight(artistsGridRef)}
+            disabled={!artistsCanScrollRight}
+            opacity={artistsCanScrollRight ? 1 : 0}
+            pointerEvents={artistsCanScrollRight ? 'auto' : 'none'}
+            transition="opacity 0.2s"
+            _hover={{ bg: 'blackAlpha.800', transform: 'translateY(-70%) scale(1.1)' }}
+          >
+            <Icon as={FaChevronRight} />
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Top Tracks */}
+      <Box mb={10}>
+        <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
+          Top 10 Morceaux
+        </Text>
+        <Box position="relative" overflow="hidden">
+          <Flex
+            ref={tracksGridRef}
+            gap={5}
+            overflowX="auto"
+            pb={4}
+            opacity={dataLoading ? 0.5 : 1}
+            transition="opacity 0.2s"
+            cursor="grab"
+            userSelect="none"
+            onMouseDown={(e) => handleMouseDown(e, tracksGridRef)}
+            onMouseUp={() => handleMouseUp(tracksGridRef)}
+            onMouseLeave={() => handleMouseLeave(tracksGridRef)}
+            onMouseMove={(e) => handleMouseMove(e, tracksGridRef)}
+            css={{
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' },
+            }}
+          >
+            {topTracks.map((track, index) => (
+              <VStack key={track.id} minW="120px" gap={2} align="start">
+                <Box position="relative" w="120px" h="120px">
+                  <Image
+                    src={track.album.images[0]?.url || '/default-album.png'}
+                    alt={track.album.name}
+                    w="100%"
+                    h="100%"
+                    borderRadius="md"
+                    objectFit="cover"
+                    transition="transform 0.2s"
+                    _hover={{ transform: 'scale(1.05)' }}
+                  />
+                  <Badge
+                    position="absolute"
+                    bottom={1}
+                    left={1}
+                    bg="blackAlpha.700"
+                    color="spotify.white"
+                    fontSize="xs"
+                    fontWeight="bold"
+                    px={2}
+                    borderRadius="sm"
+                  >
+                    #{index + 1}
+                  </Badge>
+                </Box>
+                <Text fontSize="sm" fontWeight="semibold" color="spotify.white" maxW="120px" truncate>
+                  {track.name}
+                </Text>
+                <Text fontSize="xs" color="spotify.lightGray" maxW="120px" truncate>
+                  {track.artists[0]?.name}
+                </Text>
+              </VStack>
+            ))}
+          </Flex>
+          {dataLoading && (
+            <Center position="absolute" top={0} left={0} right={0} bottom={0}>
+              <Spinner size="lg" color="spotify.green" />
+            </Center>
+          )}
+          <Button
+            position="absolute"
+            left={0}
+            top="50%"
+            transform="translateY(-70%)"
+            size="sm"
+            w="40px"
+            h="40px"
+            borderRadius="full"
+            bg="blackAlpha.700"
+            color="spotify.white"
+            onClick={() => scrollLeft(tracksGridRef)}
+            disabled={!tracksCanScrollLeft}
+            opacity={tracksCanScrollLeft ? 1 : 0}
+            pointerEvents={tracksCanScrollLeft ? 'auto' : 'none'}
+            transition="opacity 0.2s"
+            _hover={{ bg: 'blackAlpha.800', transform: 'translateY(-70%) scale(1.1)' }}
+          >
+            <Icon as={FaChevronLeft} />
+          </Button>
+          <Button
+            position="absolute"
+            right={0}
+            top="50%"
+            transform="translateY(-70%)"
+            size="sm"
+            w="40px"
+            h="40px"
+            borderRadius="full"
+            bg="blackAlpha.700"
+            color="spotify.white"
+            onClick={() => scrollRight(tracksGridRef)}
+            disabled={!tracksCanScrollRight}
+            opacity={tracksCanScrollRight ? 1 : 0}
+            pointerEvents={tracksCanScrollRight ? 'auto' : 'none'}
+            transition="opacity 0.2s"
+            _hover={{ bg: 'blackAlpha.800', transform: 'translateY(-70%) scale(1.1)' }}
+          >
+            <Icon as={FaChevronRight} />
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Recently Played */}
+      <Box>
+        <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
+          5 Derniers Titres Écoutés
+        </Text>
+        <Flex gap={6} flexDir={{ base: 'column', lg: 'row' }} overflow="hidden" maxW="100%">
+          {/* Featured Track */}
+          {recentlyPlayed[0] && (
+            <Box flexShrink={0} w={{ base: '100%', lg: '180px' }}>
+              <Image
+                src={recentlyPlayed[0].track.album.images[0]?.url || '/default-album.png'}
+                alt={recentlyPlayed[0].track.album.name}
+                w="180px"
+                h="180px"
+                borderRadius="md"
+                objectFit="cover"
+                mb={4}
+                boxShadow="lg"
+              />
+              <VStack align="start" gap={1}>
+                <Text fontSize="lg" fontWeight="bold" color="spotify.white" lineHeight="short">
+                  {recentlyPlayed[0].track.name}
+                </Text>
+                <Text fontSize="sm" color="spotify.lightGray">
+                  {recentlyPlayed[0].track.artists[0]?.name}
+                </Text>
+                <HStack gap={2} color="spotify.lightGray" fontSize="xs" mt={2}>
+                  <Icon as={FaClock} />
+                  <Text>{formatTimeAgo(recentlyPlayed[0].played_at)}</Text>
+                </HStack>
+              </VStack>
+            </Box>
+          )}
+
+          {/* Other Tracks - Limited to 70% width */}
+          <VStack flex={1} gap={2} align="stretch" maxW={{ lg: '70%' }}>
+            {recentlyPlayed.slice(1).map((item, index) => (
+              <Flex
+                key={`${item.track.id}-${index}`}
+                align="center"
+                gap={4}
+                p={3}
+                bg="whiteAlpha.50"
+                borderRadius="md"
+                _hover={{ bg: 'whiteAlpha.100' }}
+                transition="background 0.2s"
+              >
+                <Image
+                  src={item.track.album.images[0]?.url || '/default-album.png'}
+                  alt={item.track.album.name}
+                  w="45px"
+                  h="45px"
+                  borderRadius="sm"
+                  objectFit="cover"
+                  flexShrink={0}
+                />
+                <VStack flex={1} align="start" gap={0} minW={0}>
+                  <Text fontSize="sm" fontWeight="semibold" color="spotify.white" truncate w="full">
+                    {item.track.name}
+                  </Text>
+                  <Text fontSize="xs" color="spotify.lightGray" truncate w="full">
+                    {item.track.artists[0]?.name}
+                  </Text>
+                </VStack>
+                <HStack gap={2} color="spotify.lightGray" fontSize="xs" flexShrink={0}>
+                  <Icon as={FaClock} />
+                  <Text whiteSpace="nowrap">{formatTimeAgo(item.played_at)}</Text>
+                </HStack>
+              </Flex>
+            ))}
+          </VStack>
+        </Flex>
+      </Box>
+    </Box>
+  );
 }

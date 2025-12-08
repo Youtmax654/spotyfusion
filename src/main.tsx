@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { Provider } from "./components/ui/provider";
+import { SpotifyPlayerProvider } from "./hooks/useSpotifyPlayer";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -21,7 +23,11 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <Provider>
+        <SpotifyPlayerProvider>
+          <RouterProvider router={router} />
+        </SpotifyPlayerProvider>
+      </Provider>
     </StrictMode>
   );
 }
