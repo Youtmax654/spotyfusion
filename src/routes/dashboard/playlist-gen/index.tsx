@@ -17,7 +17,7 @@ function AudioSlider({
 }) {
   return (
     <Box bg="#0B1113" borderRadius="10px" p={3} mb={3}>
-      <Slider.Root defaultValue={[0.5]} variant="solid" key={label} colorPalette="green" step={0.01} min={0} max={1} onChange={(v) => onChange(Number(v))}>
+      <Slider.Root defaultValue={[0.5]} variant="solid" key={label} colorPalette="green" step={0.01} min={0} max={1} onChange={(v) => onChange(Number(v.nativeEvent.target.value))}>
         <HStack justify="space-between">
           <Slider.Label>{label}</Slider.Label>
           <Slider.ValueText />
@@ -54,17 +54,15 @@ function SeedTag({ label, onRemove }: { label: string; onRemove?: () => void }) 
       mr={2}
     >
       <Tag.Label>{label}</Tag.Label>
-      {onRemove && 
-        <IconButton
+      {onRemove && (
+        <CloseButton
           aria-label={`Supprimer ${label}`}
           size="sm"
           ml={2}
           variant="ghost"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        >
-          <CloseButton />
-        </IconButton>
-      }
+        />
+      )}
     </Tag.Root>
   );
 }
@@ -101,6 +99,7 @@ function RouteComponent() {
 
   const [generated, setGenerated] = useState<string[] | null>(null);
   function generate() {
+    console.log("Generating with:", { danceability, energy, valence, seeds });
     setGenerated(null);
     setTimeout(() => {
       if (seeds.length === 0) {
