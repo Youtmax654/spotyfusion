@@ -25,46 +25,6 @@ export const Route = createFileRoute("/dashboard/stats/")({
 function StatsPage() {
   const { topArtists, topTracks, recentlyPlayed } = Route.useLoaderData();
 
-  // const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
-  //   ref.current?.scrollBy({ left: -300, behavior: "smooth" });
-  // };
-
-  // const scrollRight = (ref: React.RefObject<HTMLDivElement | null>) => {
-  //   ref.current?.scrollBy({ left: 300, behavior: "smooth" });
-  // };
-
-  // const [tracksCanScroll, setTracksCanScroll] = useState({
-  //   left: false,
-  //   right: true,
-  // });
-
-  // const updateScrollButtons = (
-  //   ref: React.RefObject<HTMLDivElement | null>,
-  //   setScrollState: React.Dispatch<
-  //     React.SetStateAction<{ left: boolean; right: boolean }>
-  //   >
-  // ) => {
-  //   if (!ref.current) return;
-  //   const { scrollLeft, scrollWidth, clientWidth } = ref.current;
-  //   setScrollState({
-  //     left: scrollLeft > 0,
-  //     right: scrollLeft < scrollWidth - clientWidth - 1,
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   // artistsEl?.addEventListener("scroll", handleArtistsScroll);
-  //   // tracksEl?.addEventListener("scroll", handleTracksScroll);
-
-  //   // handleArtistsScroll();
-  //   // handleTracksScroll();
-
-  //   return () => {
-  //     // artistsEl?.removeEventListener("scroll", handleArtistsScroll);
-  //     // tracksEl?.removeEventListener("scroll", handleTracksScroll);
-  //   };
-  // }, [topArtists, topTracks]);
-
   return (
     <VStack
       align="start"
