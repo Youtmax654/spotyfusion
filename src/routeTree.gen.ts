@@ -9,48 +9,63 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CallbackRouteImport } from './routes/callback'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardStatsIndexRouteImport } from './routes/dashboard/stats/index'
 import { Route as DashboardPlaylistGenIndexRouteImport } from './routes/dashboard/playlist-gen/index'
 import { Route as DashboardBlindtestIndexRouteImport } from './routes/dashboard/blindtest/index'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallbackRoute = CallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardStatsIndexRoute = DashboardStatsIndexRouteImport.update({
-  id: '/dashboard/stats/',
-  path: '/dashboard/stats/',
-  getParentRoute: () => rootRouteImport,
+  id: '/stats/',
+  path: '/stats/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPlaylistGenIndexRoute =
   DashboardPlaylistGenIndexRouteImport.update({
-    id: '/dashboard/playlist-gen/',
-    path: '/dashboard/playlist-gen/',
-    getParentRoute: () => rootRouteImport,
+    id: '/playlist-gen/',
+    path: '/playlist-gen/',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardBlindtestIndexRoute = DashboardBlindtestIndexRouteImport.update({
-  id: '/dashboard/blindtest/',
-  path: '/dashboard/blindtest/',
-  getParentRoute: () => rootRouteImport,
+  id: '/blindtest/',
+  path: '/blindtest/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardIndexRoute
+  '/callback': typeof CallbackRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/blindtest': typeof DashboardBlindtestIndexRoute
   '/dashboard/playlist-gen': typeof DashboardPlaylistGenIndexRoute
   '/dashboard/stats': typeof DashboardStatsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/callback': typeof CallbackRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/blindtest': typeof DashboardBlindtestIndexRoute
   '/dashboard/playlist-gen': typeof DashboardPlaylistGenIndexRoute
@@ -59,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/callback': typeof CallbackRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/blindtest/': typeof DashboardBlindtestIndexRoute
   '/dashboard/playlist-gen/': typeof DashboardPlaylistGenIndexRoute
@@ -68,13 +85,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/callback'
     | '/dashboard'
+    | '/dashboard/'
     | '/dashboard/blindtest'
     | '/dashboard/playlist-gen'
     | '/dashboard/stats'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/callback'
     | '/dashboard'
     | '/dashboard/blindtest'
     | '/dashboard/playlist-gen'
@@ -82,6 +102,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/callback'
+    | '/dashboard'
     | '/dashboard/'
     | '/dashboard/blindtest/'
     | '/dashboard/playlist-gen/'
@@ -90,14 +112,26 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardBlindtestIndexRoute: typeof DashboardBlindtestIndexRoute
-  DashboardPlaylistGenIndexRoute: typeof DashboardPlaylistGenIndexRoute
-  DashboardStatsIndexRoute: typeof DashboardStatsIndexRoute
+  CallbackRoute: typeof CallbackRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callback': {
+      id: '/callback'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -107,41 +141,57 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/': {
       id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard'
+      path: '/'
+      fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/stats/': {
       id: '/dashboard/stats/'
-      path: '/dashboard/stats'
+      path: '/stats'
       fullPath: '/dashboard/stats'
       preLoaderRoute: typeof DashboardStatsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/playlist-gen/': {
       id: '/dashboard/playlist-gen/'
-      path: '/dashboard/playlist-gen'
+      path: '/playlist-gen'
       fullPath: '/dashboard/playlist-gen'
       preLoaderRoute: typeof DashboardPlaylistGenIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/blindtest/': {
       id: '/dashboard/blindtest/'
-      path: '/dashboard/blindtest'
+      path: '/blindtest'
       fullPath: '/dashboard/blindtest'
       preLoaderRoute: typeof DashboardBlindtestIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+interface DashboardRouteChildren {
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardBlindtestIndexRoute: typeof DashboardBlindtestIndexRoute
+  DashboardPlaylistGenIndexRoute: typeof DashboardPlaylistGenIndexRoute
+  DashboardStatsIndexRoute: typeof DashboardStatsIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardBlindtestIndexRoute: DashboardBlindtestIndexRoute,
   DashboardPlaylistGenIndexRoute: DashboardPlaylistGenIndexRoute,
   DashboardStatsIndexRoute: DashboardStatsIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  CallbackRoute: CallbackRoute,
+  DashboardRoute: DashboardRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
