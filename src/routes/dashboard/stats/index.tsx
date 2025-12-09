@@ -1,52 +1,46 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState, useRef } from 'react';
-import { Box, Flex, Text, Button, Image, VStack, HStack, Icon, Spinner, Center } from '@chakra-ui/react';
-import { isAuthenticated } from '../../../services/spotify.service.ts';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, useRef } from "react";
 import {
-  getTopArtists,
-  getTopTracks,
-  getRecentlyPlayed,
-  type SpotifyArtist,
-  type SpotifyTrack,
-  type RecentlyPlayedItem,
-} from '../../../services/spotify.service.ts';
-import { FaChevronLeft, FaChevronRight, FaClock } from 'react-icons/fa';
+  Box,
+  Flex,
+  Text,
+  Button,
+  Image,
+  VStack,
+  HStack,
+  Icon,
+  Spinner,
+  Center,
+} from "@chakra-ui/react";
+import { FaChevronLeft, FaChevronRight, FaClock } from "react-icons/fa";
+import type {
+  RecentlyPlayedItem,
+  SpotifyArtist,
+  SpotifyTrack,
+} from "@/schemas/Spotify";
+import { spotifyService } from "@/services/spotify.service";
+import { formatTimeAgo } from "@/lib/utils";
 
-export const Route = createFileRoute('/dashboard/stats/')({
+export const Route = createFileRoute("/dashboard/stats/")({
   component: StatsPage,
 });
 
-type TimeRange = 'short_term' | 'medium_term' | 'long_term';
+type TimeRange = "short_term" | "medium_term" | "long_term";
 
 const timeRangeLabels: Record<TimeRange, string> = {
-  short_term: '4 semaines',
-  medium_term: '6 mois',
-  long_term: 'Tout le temps',
+  short_term: "4 semaines",
+  medium_term: "6 mois",
+  long_term: "Tout le temps",
 };
 
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-
-  if (diffMins < 60) {
-    return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
-  } else if (diffHours < 24) {
-    return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
-  } else {
-    const diffDays = Math.floor(diffHours / 24);
-    return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
-  }
-}
-
-function StatsPage() {
+export default function StatsPage() {
   const navigate = useNavigate();
   const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
   const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
-  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>([]);
-  const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
+  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
+    []
+  );
+  const [timeRange, setTimeRange] = useState<TimeRange>("short_term");
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
 
@@ -55,13 +49,13 @@ function StatsPage() {
 
   const scrollLeft = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
-      ref.current.scrollBy({ left: -300, behavior: 'smooth' });
+      ref.current.scrollBy({ left: -300, behavior: "smooth" });
     }
   };
 
   const scrollRight = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
-      ref.current.scrollBy({ left: 300, behavior: 'smooth' });
+      ref.current.scrollBy({ left: 300, behavior: "smooth" });
     }
   };
 
@@ -71,7 +65,11 @@ function StatsPage() {
   const [tracksCanScrollLeft, setTracksCanScrollLeft] = useState(false);
   const [tracksCanScrollRight, setTracksCanScrollRight] = useState(true);
 
-  const updateScrollButtons = (ref: React.RefObject<HTMLDivElement | null>, setLeft: (v: boolean) => void, setRight: (v: boolean) => void) => {
+  const updateScrollButtons = (
+    ref: React.RefObject<HTMLDivElement | null>,
+    setLeft: (v: boolean) => void,
+    setRight: (v: boolean) => void
+  ) => {
     if (!ref.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = ref.current;
     setLeft(scrollLeft > 0);
@@ -82,51 +80,59 @@ function StatsPage() {
     const artistsEl = artistsGridRef.current;
     const tracksEl = tracksGridRef.current;
 
-    const handleArtistsScroll = () => updateScrollButtons(artistsGridRef, setArtistsCanScrollLeft, setArtistsCanScrollRight);
-    const handleTracksScroll = () => updateScrollButtons(tracksGridRef, setTracksCanScrollLeft, setTracksCanScrollRight);
+    const handleArtistsScroll = () =>
+      updateScrollButtons(
+        artistsGridRef,
+        setArtistsCanScrollLeft,
+        setArtistsCanScrollRight
+      );
+    const handleTracksScroll = () =>
+      updateScrollButtons(
+        tracksGridRef,
+        setTracksCanScrollLeft,
+        setTracksCanScrollRight
+      );
 
-    artistsEl?.addEventListener('scroll', handleArtistsScroll);
-    tracksEl?.addEventListener('scroll', handleTracksScroll);
+    artistsEl?.addEventListener("scroll", handleArtistsScroll);
+    tracksEl?.addEventListener("scroll", handleTracksScroll);
 
     handleArtistsScroll();
     handleTracksScroll();
 
     return () => {
-      artistsEl?.removeEventListener('scroll', handleArtistsScroll);
-      tracksEl?.removeEventListener('scroll', handleTracksScroll);
+      artistsEl?.removeEventListener("scroll", handleArtistsScroll);
+      tracksEl?.removeEventListener("scroll", handleTracksScroll);
     };
   }, [topArtists, topTracks]);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate({ to: '/' });
-      return;
-    }
-
     const fetchData = async () => {
       try {
         // Récupération depuis le cache si disponible
-        const cachedRecentlyPlayed = sessionStorage.getItem('spotyfusion_recently_played');
-
+        const cachedRecentlyPlayed = sessionStorage.getItem(
+          "spotyfusion_recently_played"
+        );
 
         const [artists, tracks] = await Promise.all([
-          getTopArtists(timeRange, 10),
-          getTopTracks(timeRange, 10),
+          spotifyService.getTopArtists(timeRange, 10),
+          spotifyService.getTopTracks(timeRange, 10),
         ]);
 
         setTopArtists(artists);
         setTopTracks(tracks);
 
-
         if (cachedRecentlyPlayed) {
           setRecentlyPlayed(JSON.parse(cachedRecentlyPlayed));
         } else {
-          const recent = await getRecentlyPlayed(5);
+          const recent = await spotifyService.getRecentlyPlayed(5);
           setRecentlyPlayed(recent);
-          sessionStorage.setItem('spotyfusion_recently_played', JSON.stringify(recent));
+          sessionStorage.setItem(
+            "spotyfusion_recently_played",
+            JSON.stringify(recent)
+          );
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -140,13 +146,13 @@ function StatsPage() {
     setDataLoading(true);
     try {
       const [artists, tracks] = await Promise.all([
-        getTopArtists(newRange, 10),
-        getTopTracks(newRange, 10),
+        spotifyService.getTopArtists(newRange, 10),
+        spotifyService.getTopTracks(newRange, 10),
       ]);
       setTopArtists(artists);
       setTopTracks(tracks);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setDataLoading(false);
     }
@@ -157,7 +163,9 @@ function StatsPage() {
       <Center flex={1} p={8}>
         <VStack gap={4}>
           <Spinner size="xl" color="spotify.green" />
-          <Text color="spotify.lightGray">Chargement de vos statistiques...</Text>
+          <Text color="spotify.lightGray">
+            Chargement de vos statistiques...
+          </Text>
         </VStack>
       </Center>
     );
@@ -171,9 +179,9 @@ function StatsPage() {
       height="100%"
       width="100%"
       css={{
-        '& ::-webkit-scrollbar': { display: 'none' },
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
+        "& ::-webkit-scrollbar": { display: "none" },
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
       }}
     >
       <Box mb={8}>
@@ -198,14 +206,15 @@ function StatsPage() {
             fontWeight="medium"
             borderRadius="full"
             border="1px solid"
-            borderColor={timeRange === range ? 'transparent' : 'whiteAlpha.300'}
-            bg={timeRange === range ? 'spotify.white' : 'whiteAlpha.100'}
-            color={timeRange === range ? 'black' : 'white'}
+            borderColor={timeRange === range ? "transparent" : "whiteAlpha.300"}
+            bg={timeRange === range ? "spotify.white" : "whiteAlpha.100"}
+            color={timeRange === range ? "black" : "white"}
             onClick={() => handleTimeRangeChange(range)}
             transition="all 0.2s"
             _hover={{
-              bg: timeRange === range ? 'spotify.white' : 'whiteAlpha.200',
-              borderColor: timeRange === range ? 'transparent' : 'whiteAlpha.500',
+              bg: timeRange === range ? "spotify.white" : "whiteAlpha.200",
+              borderColor:
+                timeRange === range ? "transparent" : "whiteAlpha.500",
             }}
           >
             {timeRangeLabels[range]}
@@ -226,9 +235,9 @@ function StatsPage() {
             opacity={dataLoading ? 0.5 : 1}
             transition="opacity 0.2s"
             css={{
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': { display: 'none' },
-              msOverflowStyle: 'none',
+              scrollbarWidth: "none",
+              "&::-webkit-scrollbar": { display: "none" },
+              msOverflowStyle: "none",
             }}
           >
             {topArtists.map((artist, index) => (
@@ -238,11 +247,11 @@ function StatsPage() {
                 gap={3}
                 cursor="pointer"
                 transition="transform 0.2s"
-                _hover={{ transform: 'scale(1.05)' }}
+                _hover={{ transform: "scale(1.05)" }}
               >
                 <Box w="140px" h="140px">
                   <Image
-                    src={artist.images[0]?.url || '/default-artist.png'}
+                    src={artist.images[0]?.url || "/default-artist.png"}
                     alt={artist.name}
                     w="100%"
                     h="100%"
@@ -250,11 +259,20 @@ function StatsPage() {
                     objectFit="cover"
                     border="3px solid transparent"
                     transition="all 0.2s"
-                    _groupHover={{ borderColor: 'spotify.green' }}
+                    _groupHover={{ borderColor: "spotify.green" }}
                   />
                 </Box>
-                <Text fontSize="sm" color="spotify.white" textAlign="center" maxW="140px" truncate>
-                  <Text as="span" color="spotify.white" fontWeight="bold">#{index + 1}.</Text>{' '}{artist.name}
+                <Text
+                  fontSize="sm"
+                  color="spotify.white"
+                  textAlign="center"
+                  maxW="140px"
+                  truncate
+                >
+                  <Text as="span" color="spotify.white" fontWeight="bold">
+                    #{index + 1}.
+                  </Text>{" "}
+                  {artist.name}
                 </Text>
               </VStack>
             ))}
@@ -279,9 +297,9 @@ function StatsPage() {
             onClick={() => scrollLeft(artistsGridRef)}
             disabled={!artistsCanScrollLeft}
             opacity={artistsCanScrollLeft ? 1 : 0}
-            visibility={artistsCanScrollLeft ? 'visible' : 'hidden'}
-            _hover={{ bg: 'blackAlpha.900' }}
-            _active={{ bg: 'black' }}
+            visibility={artistsCanScrollLeft ? "visible" : "hidden"}
+            _hover={{ bg: "blackAlpha.900" }}
+            _active={{ bg: "black" }}
           >
             <Icon as={FaChevronLeft} boxSize={4} />
           </Button>
@@ -300,9 +318,9 @@ function StatsPage() {
             onClick={() => scrollRight(artistsGridRef)}
             disabled={!artistsCanScrollRight}
             opacity={artistsCanScrollRight ? 1 : 0}
-            visibility={artistsCanScrollRight ? 'visible' : 'hidden'}
-            _hover={{ bg: 'blackAlpha.900' }}
-            _active={{ bg: 'black' }}
+            visibility={artistsCanScrollRight ? "visible" : "hidden"}
+            _hover={{ bg: "blackAlpha.900" }}
+            _active={{ bg: "black" }}
           >
             <Icon as={FaChevronRight} boxSize={4} />
           </Button>
@@ -322,29 +340,43 @@ function StatsPage() {
             opacity={dataLoading ? 0.5 : 1}
             transition="opacity 0.2s"
             css={{
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': { display: 'none' },
-              msOverflowStyle: 'none',
+              scrollbarWidth: "none",
+              "&::-webkit-scrollbar": { display: "none" },
+              msOverflowStyle: "none",
             }}
           >
             {topTracks.map((track, index) => (
               <VStack key={track.id} minW="140px" gap={2} align="start">
                 <Box w="140px" h="140px">
                   <Image
-                    src={track.album.images[0]?.url || '/default-album.png'}
+                    src={track.album.images[0]?.url || "/default-album.png"}
                     alt={track.album.name}
                     w="100%"
                     h="100%"
                     borderRadius="full"
                     objectFit="cover"
                     transition="transform 0.2s"
-                    _hover={{ transform: 'scale(1.05)' }}
+                    _hover={{ transform: "scale(1.05)" }}
                   />
                 </Box>
-                <Text fontSize="sm" fontWeight="semibold" color="spotify.white" maxW="140px" truncate>
-                  <Text as="span" color="spotify.white" fontWeight="bold">#{index + 1}.</Text>{' '}{track.name}
+                <Text
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="spotify.white"
+                  maxW="140px"
+                  truncate
+                >
+                  <Text as="span" color="spotify.white" fontWeight="bold">
+                    #{index + 1}.
+                  </Text>{" "}
+                  {track.name}
                 </Text>
-                <Text fontSize="xs" color="spotify.lightGray" maxW="140px" truncate>
+                <Text
+                  fontSize="xs"
+                  color="spotify.lightGray"
+                  maxW="140px"
+                  truncate
+                >
                   {track.artists[0]?.name}
                 </Text>
               </VStack>
@@ -370,9 +402,9 @@ function StatsPage() {
             onClick={() => scrollLeft(tracksGridRef)}
             disabled={!tracksCanScrollLeft}
             opacity={tracksCanScrollLeft ? 1 : 0}
-            visibility={tracksCanScrollLeft ? 'visible' : 'hidden'}
-            _hover={{ bg: 'blackAlpha.900' }}
-            _active={{ bg: 'black' }}
+            visibility={tracksCanScrollLeft ? "visible" : "hidden"}
+            _hover={{ bg: "blackAlpha.900" }}
+            _active={{ bg: "black" }}
           >
             <Icon as={FaChevronLeft} boxSize={4} />
           </Button>
@@ -391,9 +423,9 @@ function StatsPage() {
             onClick={() => scrollRight(tracksGridRef)}
             disabled={!tracksCanScrollRight}
             opacity={tracksCanScrollRight ? 1 : 0}
-            visibility={tracksCanScrollRight ? 'visible' : 'hidden'}
-            _hover={{ bg: 'blackAlpha.900' }}
-            _active={{ bg: 'black' }}
+            visibility={tracksCanScrollRight ? "visible" : "hidden"}
+            _hover={{ bg: "blackAlpha.900" }}
+            _active={{ bg: "black" }}
           >
             <Icon as={FaChevronRight} boxSize={4} />
           </Button>
@@ -404,12 +436,20 @@ function StatsPage() {
         <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
           5 Derniers Titres Écoutés
         </Text>
-        <Flex gap={4} flexDir={{ base: 'column', lg: 'row' }} overflow="hidden" maxW="100%">
+        <Flex
+          gap={4}
+          flexDir={{ base: "column", lg: "row" }}
+          overflow="hidden"
+          maxW="100%"
+        >
           {/* Titre principal */}
           {recentlyPlayed[0] && (
-            <Box flexShrink={0} w={{ base: '100%', lg: '160px' }}>
+            <Box flexShrink={0} w={{ base: "100%", lg: "160px" }}>
               <Image
-                src={recentlyPlayed[0].track.album.images[0]?.url || '/default-album.png'}
+                src={
+                  recentlyPlayed[0].track.album.images[0]?.url ||
+                  "/default-album.png"
+                }
                 alt={recentlyPlayed[0].track.album.name}
                 w="160px"
                 h="160px"
@@ -419,7 +459,14 @@ function StatsPage() {
                 boxShadow="lg"
               />
               <VStack align="start" gap={0}>
-                <Text fontSize="md" fontWeight="bold" color="spotify.white" lineHeight="short" maxW="160px" truncate>
+                <Text
+                  fontSize="md"
+                  fontWeight="bold"
+                  color="spotify.white"
+                  lineHeight="short"
+                  maxW="160px"
+                  truncate
+                >
                   {recentlyPlayed[0].track.name}
                 </Text>
                 <Text fontSize="sm" color="spotify.lightGray">
@@ -443,11 +490,11 @@ function StatsPage() {
                 p={2}
                 bg="whiteAlpha.50"
                 borderRadius="md"
-                _hover={{ bg: 'whiteAlpha.100' }}
+                _hover={{ bg: "whiteAlpha.100" }}
                 transition="background 0.2s"
               >
                 <Image
-                  src={item.track.album.images[0]?.url || '/default-album.png'}
+                  src={item.track.album.images[0]?.url || "/default-album.png"}
                   alt={item.track.album.name}
                   w="40px"
                   h="40px"
@@ -456,22 +503,40 @@ function StatsPage() {
                   flexShrink={0}
                 />
                 <VStack flex={1} align="start" gap={0} minW={0}>
-                  <Text fontSize="sm" fontWeight="semibold" color="spotify.white" truncate w="full">
+                  <Text
+                    fontSize="sm"
+                    fontWeight="semibold"
+                    color="spotify.white"
+                    truncate
+                    w="full"
+                  >
                     {item.track.name}
                   </Text>
-                  <Text fontSize="xs" color="spotify.lightGray" truncate w="full">
+                  <Text
+                    fontSize="xs"
+                    color="spotify.lightGray"
+                    truncate
+                    w="full"
+                  >
                     {item.track.artists[0]?.name}
                   </Text>
                 </VStack>
-                <HStack gap={1} color="spotify.lightGray" fontSize="xs" flexShrink={0}>
+                <HStack
+                  gap={1}
+                  color="spotify.lightGray"
+                  fontSize="xs"
+                  flexShrink={0}
+                >
                   <Icon as={FaClock} boxSize={3} />
-                  <Text whiteSpace="nowrap">{formatTimeAgo(item.played_at)}</Text>
+                  <Text whiteSpace="nowrap">
+                    {formatTimeAgo(item.played_at)}
+                  </Text>
                 </HStack>
               </Flex>
             ))}
           </VStack>
         </Flex>
       </Box>
-    </Box >
+    </Box>
   );
 }

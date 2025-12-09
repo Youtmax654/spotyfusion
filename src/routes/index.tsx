@@ -1,4 +1,4 @@
-import { SPOTIFY_CONFIG } from "@/config/spotify";
+import { spotifyConfig } from "@/config/spotify";
 import MusicNoteIcon from "@/icons/MusicNoteIcon";
 import {
   Box,
@@ -145,6 +145,7 @@ const connect = async () => {
   const hashed = await sha256(codeVerifier);
   const codeChallenge = base64encode(hashed);
 
+  const scope = "user-read-private user-read-email";
   const authUrl = new URL("https://accounts.spotify.com/authorize");
 
   // generated in the previous step
@@ -152,11 +153,11 @@ const connect = async () => {
 
   const params = {
     response_type: "code",
-    client_id: SPOTIFY_CONFIG.clientId,
-    scope: SPOTIFY_CONFIG.scopes,
+    client_id: spotifyConfig.clientId,
+    scope,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
-    redirect_uri: SPOTIFY_CONFIG.redirectUri,
+    redirect_uri: spotifyConfig.redirectUri,
   };
 
   authUrl.search = new URLSearchParams(params).toString();
