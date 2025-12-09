@@ -5,5 +5,5 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function RouteComponent() {
-  return <Navigate to="/dashboard/stats" />;
+  return <Navigate to="/dashboard/stats" search={{ range: "short_term" }} />;
 }

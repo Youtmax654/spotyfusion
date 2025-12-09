@@ -14,18 +14,21 @@ export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
   staleTime: Infinity,
   loader: async () => {
-    const user = await spotifyService.getUserProfile();
-    if (!user) {
+    try {
+      const user = await spotifyService.getUserProfile();
+      return { user };
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
       toaster.create({
-        title: "Vous n'êtes pas connecté",
-        description: "Veuillez vous connecter pour accéder au tableau de bord.",
+        title: "Erreur de connexion",
+        description:
+          "Une erreur est survenue lors de la récupération de votre profil.",
         type: "error",
       });
       throw redirect({
         to: "/",
       });
     }
-    return { user };
   },
 });
 
@@ -50,7 +53,7 @@ const routes = [
 // Dashboard layout with sidebar
 function RouteComponent() {
   return (
-    <HStack height="100vh" alignItems="start" padding={2} bg="bg">
+    <HStack height="100vh" alignItems="start" padding={2} bg="spotify.dark">
       <Stack
         as="aside"
         width="280px"
@@ -58,7 +61,7 @@ function RouteComponent() {
         padding={6}
         borderRadius="8px"
         height="calc(100vh - 16px)"
-        bg="bg.panel"
+        bg="spotify.panel"
       >
         <Header />
 
@@ -90,11 +93,11 @@ function RouteComponent() {
 
       <Stack
         as="main"
-        bg="bg.panel"
+        bg="spotify.panel"
         flex={1}
-        padding={6}
         borderRadius="8px"
-        minHeight="calc(100vh - 16px)"
+        height="calc(100vh - 16px)"
+        width="calc(100% - 296px)"
       >
         <Outlet />
       </Stack>
