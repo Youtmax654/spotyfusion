@@ -372,7 +372,7 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                     },
                     body: JSON.stringify({
                         uris: [trackUri],
-                        position_ms: 0,
+                        position_ms: 10000,
                     }),
                 }
             );
@@ -407,7 +407,7 @@ export function SpotifyPlayerProvider({ children }: SpotifyPlayerProviderProps) 
                         },
                         body: JSON.stringify({
                             uris: [trackUri],
-                            position_ms: 0,
+                            position_ms: 30000,
                         }),
                     }
                 );
