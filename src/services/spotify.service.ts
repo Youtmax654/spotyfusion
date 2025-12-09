@@ -1,4 +1,21 @@
 import type { User } from "@/schemas/User";
+import type {
+    SpotifyArtist,
+    SpotifyTrack,
+    SpotifyPlaylist,
+    SpotifyUser,
+    RecentlyPlayedItem,
+    SpotifyDevice,
+} from "@/schemas/Spotify";
+
+export type {
+    SpotifyArtist,
+    SpotifyTrack,
+    SpotifyPlaylist,
+    SpotifyUser,
+    RecentlyPlayedItem,
+    SpotifyDevice,
+};
 
 export const spotifyService = {
     getUserProfile: async (): Promise<User | null> => {
@@ -31,52 +48,6 @@ export function isAuthenticated(): boolean {
 
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
-interface SpotifyImage {
-    url: string;
-    height: number;
-    width: number;
-}
-
-export interface SpotifyArtist {
-    id: string;
-    name: string;
-    images: SpotifyImage[];
-    genres: string[];
-}
-
-export interface SpotifyTrack {
-    id: string;
-    name: string;
-    artists: { name: string }[];
-    album: {
-        name: string;
-        images: SpotifyImage[];
-    };
-    duration_ms: number;
-    preview_url: string | null;
-}
-
-export interface SpotifyPlaylist {
-    id: string;
-    name: string;
-    images: SpotifyImage[];
-    tracks: {
-        total: number;
-    };
-}
-
-export interface SpotifyUser {
-    id: string;
-    display_name: string;
-    email: string;
-    images: SpotifyImage[];
-    product: string; // 'premium' | 'free'
-}
-
-export interface RecentlyPlayedItem {
-    track: SpotifyTrack;
-    played_at: string;
-}
 
 async function fetchWithAuth(endpoint: string): Promise<Response> {
     let token = getAccessToken();
@@ -149,12 +120,6 @@ export async function getPlaylistTracks(playlistId: string, limit: number = 100)
 }
 
 // Spotify Playback Control (requires Premium)
-export interface SpotifyDevice {
-    id: string;
-    is_active: boolean;
-    name: string;
-    type: string;
-}
 
 // Helper for PUT requests to Spotify player API
 async function putPlayerRequest(endpoint: string, body?: object): Promise<boolean> {

@@ -232,7 +232,14 @@ function StatsPage() {
             }}
           >
             {topArtists.map((artist, index) => (
-              <VStack key={artist.id} minW="140px" gap={3}>
+              <VStack
+                key={artist.id}
+                minW="140px"
+                gap={3}
+                cursor="pointer"
+                transition="transform 0.2s"
+                _hover={{ transform: 'scale(1.05)' }}
+              >
                 <Box w="140px" h="140px">
                   <Image
                     src={artist.images[0]?.url || '/default-artist.png'}
@@ -242,8 +249,8 @@ function StatsPage() {
                     borderRadius="full"
                     objectFit="cover"
                     border="3px solid transparent"
-                    transition="border-color 0.2s"
-                    _hover={{ borderColor: 'spotify.green' }}
+                    transition="all 0.2s"
+                    _groupHover={{ borderColor: 'spotify.green' }}
                   />
                 </Box>
                 <Text fontSize="sm" color="spotify.white" textAlign="center" maxW="140px" truncate>
@@ -259,45 +266,45 @@ function StatsPage() {
           )}
           <Button
             position="absolute"
-            left={2}
+            left={0}
             top="50%"
-            transform="translateY(-70%)"
-            size="sm"
-            w="36px"
-            h="36px"
-            minW="36px"
+            transform="translateY(-50%)"
+            w="44px"
+            h="44px"
+            minW="44px"
+            p={0}
             borderRadius="full"
-            bg="rgba(0, 0, 0, 0.7)"
-            color="spotify.white"
+            bg="blackAlpha.800"
+            color="white"
             onClick={() => scrollLeft(artistsGridRef)}
             disabled={!artistsCanScrollLeft}
-            opacity={artistsCanScrollLeft ? 1 : 0.3}
-            transition="all 0.2s"
-            _hover={{ bg: 'spotify.green' }}
-            boxShadow="lg"
+            opacity={artistsCanScrollLeft ? 1 : 0}
+            visibility={artistsCanScrollLeft ? 'visible' : 'hidden'}
+            _hover={{ bg: 'blackAlpha.900' }}
+            _active={{ bg: 'black' }}
           >
-            <Icon as={FaChevronLeft} />
+            <Icon as={FaChevronLeft} boxSize={4} />
           </Button>
           <Button
             position="absolute"
-            right={2}
+            right={0}
             top="50%"
-            transform="translateY(-70%)"
-            size="sm"
-            w="36px"
-            h="36px"
-            minW="36px"
+            transform="translateY(-50%)"
+            w="44px"
+            h="44px"
+            minW="44px"
+            p={0}
             borderRadius="full"
-            bg="rgba(0, 0, 0, 0.7)"
-            color="spotify.white"
+            bg="blackAlpha.800"
+            color="white"
             onClick={() => scrollRight(artistsGridRef)}
             disabled={!artistsCanScrollRight}
-            opacity={artistsCanScrollRight ? 1 : 0.3}
-            transition="all 0.2s"
-            _hover={{ bg: 'spotify.green', transform: 'translateY(-70%) scale(1.1)' }}
-            boxShadow="lg"
+            opacity={artistsCanScrollRight ? 1 : 0}
+            visibility={artistsCanScrollRight ? 'visible' : 'hidden'}
+            _hover={{ bg: 'blackAlpha.900' }}
+            _active={{ bg: 'black' }}
           >
-            <Icon as={FaChevronRight} />
+            <Icon as={FaChevronRight} boxSize={4} />
           </Button>
         </Box>
       </Box>
@@ -350,45 +357,45 @@ function StatsPage() {
           )}
           <Button
             position="absolute"
-            left={2}
+            left={0}
             top="50%"
-            transform="translateY(-70%)"
-            size="sm"
-            w="36px"
-            h="36px"
-            minW="36px"
+            transform="translateY(-50%)"
+            w="44px"
+            h="44px"
+            minW="44px"
+            p={0}
             borderRadius="full"
-            bg="rgba(0, 0, 0, 0.7)"
-            color="spotify.white"
+            bg="blackAlpha.800"
+            color="white"
             onClick={() => scrollLeft(tracksGridRef)}
             disabled={!tracksCanScrollLeft}
-            opacity={tracksCanScrollLeft ? 1 : 0.3}
-            transition="all 0.2s"
-            _hover={{ bg: 'spotify.green', transform: 'translateY(-70%) scale(1.1)' }}
-            boxShadow="lg"
+            opacity={tracksCanScrollLeft ? 1 : 0}
+            visibility={tracksCanScrollLeft ? 'visible' : 'hidden'}
+            _hover={{ bg: 'blackAlpha.900' }}
+            _active={{ bg: 'black' }}
           >
-            <Icon as={FaChevronLeft} />
+            <Icon as={FaChevronLeft} boxSize={4} />
           </Button>
           <Button
             position="absolute"
-            right={2}
+            right={0}
             top="50%"
-            transform="translateY(-70%)"
-            size="sm"
-            w="36px"
-            h="36px"
-            minW="36px"
+            transform="translateY(-50%)"
+            w="44px"
+            h="44px"
+            minW="44px"
+            p={0}
             borderRadius="full"
-            bg="rgba(0, 0, 0, 0.7)"
-            color="spotify.white"
+            bg="blackAlpha.800"
+            color="white"
             onClick={() => scrollRight(tracksGridRef)}
             disabled={!tracksCanScrollRight}
-            opacity={tracksCanScrollRight ? 1 : 0.3}
-            transition="all 0.2s"
-            _hover={{ bg: 'spotify.green', transform: 'translateY(-70%) scale(1.1)' }}
-            boxShadow="lg"
+            opacity={tracksCanScrollRight ? 1 : 0}
+            visibility={tracksCanScrollRight ? 'visible' : 'hidden'}
+            _hover={{ bg: 'blackAlpha.900' }}
+            _active={{ bg: 'black' }}
           >
-            <Icon as={FaChevronRight} />
+            <Icon as={FaChevronRight} boxSize={4} />
           </Button>
         </Box>
       </Box>
@@ -465,6 +472,6 @@ function StatsPage() {
           </VStack>
         </Flex>
       </Box>
-    </Box>
+    </Box >
   );
 }
