@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect, useRef } from 'react';
 import { Box, Flex, Text, VStack, HStack, Button, Image, Grid, Center } from '@chakra-ui/react';
-import { FaPlay, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaPlay, FaTimes, FaCheck, FaLock } from 'react-icons/fa';
 import { getUserPlaylists, getPlaylistTracks } from '../../../services/spotify.service';
 import type { SpotifyPlaylist, SpotifyTrack } from '../../../services/spotify.service';
 import { useSpotifyPlayer } from '../../../hooks/useSpotifyPlayer';
@@ -229,109 +229,133 @@ function BlindTestPage() {
   const renderSetup = () => (
     <Box>
       <Text fontSize="2xl" fontWeight="bold" color="white" mb={2}>
-        Blind Test Musical
+        Blind Test
       </Text>
       <Text color="#b3b3b3" mb={8}>
         Testez vos connaissances musicales en devinant les morceaux
       </Text>
 
-      <Text fontSize="lg" fontWeight="semibold" color="white" mb={4}>
-        Mes playlists
-      </Text>
+      {/* Conteneur avec position relative pour l'overlay */}
+      <Box position="relative" minH="70vh">
+        <Text fontSize="lg" fontWeight="semibold" color="white" mb={4}>
+          Mes playlists
+        </Text>
 
-      {loading ? (
-        <Center py={10}>
-          <Text color="#b3b3b3">Chargement...</Text>
-        </Center>
-      ) : (
-        <>
-          <Grid templateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4} mb={8}>
-            {playlists.map(playlist => (
-              <Box
-                key={playlist.id}
-                cursor="pointer"
-                onClick={() => setSelectedPlaylist(playlist)}
-                position="relative"
-                transition="transform 0.2s"
-                _hover={{ transform: 'scale(1.05)' }}
-              >
-                <Image
-                  src={playlist.images[0]?.url || '/placeholder.png'}
-                  alt={playlist.name}
-                  borderRadius="md"
-                  w="100%"
-                  aspectRatio={1}
-                  objectFit="cover"
-                />
-                {selectedPlaylist?.id === playlist.id && (
-                  <Center
-                    position="absolute"
-                    bottom={2}
-                    right={2}
-                    w={6}
-                    h={6}
-                    bg="#1db954"
-                    borderRadius="full"
-                  >
-                    <FaCheck size={12} color="black" />
-                  </Center>
-                )}
-                <Text
-                  color="white"
-                  fontSize="sm"
-                  mt={2}
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  whiteSpace="nowrap"
+        {loading ? (
+          <Center py={10}>
+            <Text color="#b3b3b3">Chargement...</Text>
+          </Center>
+        ) : (
+          <>
+            <Grid templateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4} mb={8}>
+              {playlists.map(playlist => (
+                <Box
+                  key={playlist.id}
+                  cursor="pointer"
+                  onClick={() => setSelectedPlaylist(playlist)}
+                  position="relative"
+                  transition="transform 0.2s"
+                  _hover={{ transform: 'scale(1.05)' }}
                 >
-                  {playlist.name}
-                </Text>
-              </Box>
-            ))}
-          </Grid>
+                  <Image
+                    src={playlist.images[0]?.url || '/placeholder.png'}
+                    alt={playlist.name}
+                    borderRadius="md"
+                    w="100%"
+                    aspectRatio={1}
+                    objectFit="cover"
+                  />
+                  {selectedPlaylist?.id === playlist.id && (
+                    <Center
+                      position="absolute"
+                      bottom={2}
+                      right={2}
+                      w={6}
+                      h={6}
+                      bg="#1db954"
+                      borderRadius="full"
+                    >
+                      <FaCheck size={12} color="black" />
+                    </Center>
+                  )}
+                  <Text
+                    color="white"
+                    fontSize="sm"
+                    mt={2}
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    whiteSpace="nowrap"
+                  >
+                    {playlist.name}
+                  </Text>
+                </Box>
+              ))}
+            </Grid>
 
-          {playerError && (
-            <Box
-              bg="red.900"
-              border="1px solid"
-              borderColor="red.500"
-              borderRadius="md"
-              p={4}
-              mb={4}
+            <Button
+              onClick={startGame}
+              disabled={!selectedPlaylist || loading || !isReady}
+              bg="white"
+              color="black"
+              borderRadius="full"
+              px={6}
+              py={5}
+              fontWeight="semibold"
+              fontSize="sm"
+              _hover={{ bg: 'gray.100' }}
+              _disabled={{ opacity: 0.5, cursor: 'not-allowed', bg: 'gray.400' }}
             >
-              <Text color="red.200">{playerError}</Text>
-              <Button
-                size="sm"
-                mt={2}
-                colorScheme="red"
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = '/';
-                }}
-              >
-                Se déconnecter et réessayer
-              </Button>
-            </Box>
-          )}
+              <FaPlay style={{ marginRight: 10 }} size={12} />
+              {loading ? 'Chargement...' : isReady ? 'Commencer le Blind Test' : 'Lecteur non prêt'}
+            </Button>
+          </>
+        )}
 
-          <Button
-            onClick={startGame}
-            disabled={!selectedPlaylist || loading || !isReady}
-            bg="white"
-            color="black"
-            borderRadius="full"
-            px={6}
-            py={5}
-            fontWeight="semibold"
-            fontSize="sm"
-            _hover={{ bg: 'gray.100' }}
-            _disabled={{ opacity: 0.5, cursor: 'not-allowed', bg: 'gray.400' }}
+        {/* Overlay flou uniquement sur cette section */}
+        {playerError && (
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bg="#121111ff"
+            backdropFilter="blur(16px)"
+            zIndex={100}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius="lg"
           >
-            <FaPlay style={{ marginRight: 10 }} size={12} />
-            {loading ? 'Chargement...' : isReady ? 'Commencer le Blind Test' : 'Lecteur non prêt'}
-          </Button>
-        </>
-      )}
+            <Box
+              bg="#181818"
+              borderRadius="xl"
+              p={8}
+              maxW="400px"
+              mx={4}
+              textAlign="center"
+              boxShadow="2xl"
+            >
+              <Center
+                w={16}
+                h={16}
+                bg="whiteAlpha.100"
+                borderRadius="full"
+                mx="auto"
+                mb={5}
+              >
+                <FaLock size={28} color="#b3b3b3" />
+              </Center>
+              <Text fontSize="xl" fontWeight="bold" color="white" mb={3}>
+                Compte Premium requis
+              </Text>
+              <Text color="#b3b3b3" fontSize="sm">
+                Le Blind Test nécessite un abonnement Spotify Premium pour lire les morceaux.
+              </Text>
+            </Box>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 
@@ -537,6 +561,7 @@ function BlindTestPage() {
     <Box
       p={8}
       height="100%"
+      position="relative"
       overflowY="auto"
       css={{
         '&::-webkit-scrollbar': { display: 'none' },

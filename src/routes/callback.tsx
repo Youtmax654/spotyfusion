@@ -1,5 +1,6 @@
 import { toaster } from "@/components/ui/toaster";
 import { spotifyConfig } from "@/config/spotify";
+import { Center, Spinner } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -55,5 +56,9 @@ function RouteComponent() {
     getToken();
   }, []);
 
-  return <div>Callback route - getting token...</div>;
+  return (
+    <Center h="100vh">
+      <Spinner size="xl" color="green.500" borderWidth="4px" />
+    </Center>
+  );
 }
