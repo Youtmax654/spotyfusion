@@ -50,15 +50,25 @@ const routes = [
 // Dashboard layout with sidebar
 function RouteComponent() {
   return (
-    <HStack height="100vh" alignItems="start" padding={2} bg="bg">
+    <HStack
+      height="100vh"
+      width="100vw"
+      maxWidth="100vw"
+      alignItems="stretch"
+      gap={2}
+      padding={2}
+      bg="bg.panel"
+      overflow="hidden"
+    >
       <Stack
         as="aside"
         width="280px"
+        minWidth="280px"
+        flexShrink={0}
         gap={4}
         padding={6}
         borderRadius="8px"
-        height="calc(100vh - 16px)"
-        bg="bg.panel"
+        bg="bg"
       >
         <Header />
 
@@ -90,11 +100,11 @@ function RouteComponent() {
 
       <Stack
         as="main"
-        bg="bg.panel"
+        bg="bg"
         flex={1}
-        padding={6}
+        padding={0}
         borderRadius="8px"
-        minHeight="calc(100vh - 16px)"
+        overflow="hidden"
       >
         <Outlet />
       </Stack>

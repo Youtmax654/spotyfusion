@@ -1,5 +1,5 @@
 import { toaster } from "@/components/ui/toaster";
-import { spotifyConfig } from "@/config/spotify";
+import { SPOTIFY_CONFIG } from "@/config/spotify";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -21,10 +21,10 @@ const getToken = async () => {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      client_id: spotifyConfig.clientId,
+      client_id: SPOTIFY_CONFIG.clientId,
       grant_type: "authorization_code",
       code: code || "",
-      redirect_uri: spotifyConfig.redirectUri,
+      redirect_uri: SPOTIFY_CONFIG.redirectUri,
       code_verifier: codeVerifier || "",
     }),
   };
