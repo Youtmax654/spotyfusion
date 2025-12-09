@@ -42,6 +42,8 @@ const getToken = async () => {
     return;
   }
 
+  localStorage.removeItem("code_verifier");
+
   localStorage.setItem("access_token", response.access_token);
   localStorage.setItem("refresh_token", response.refresh_token);
 
