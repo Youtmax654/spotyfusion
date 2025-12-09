@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState, useRef } from 'react';
-import { Box, Flex, Text, Button, Image, VStack, HStack, Icon, Spinner, Center, Badge } from '@chakra-ui/react';
+import { Box, Flex, Text, Button, Image, VStack, HStack, Icon, Spinner, Center } from '@chakra-ui/react';
 import { isAuthenticated } from '../../../services/spotifyAuth';
 import {
   getTopArtists,
@@ -65,42 +65,7 @@ function StatsPage() {
     }
   };
 
-  // Drag to scroll state
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftPos = useRef(0);
-
-  const handleMouseDown = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement | null>) => {
-    if (!ref.current) return;
-    isDragging.current = true;
-    startX.current = e.pageX - ref.current.offsetLeft;
-    scrollLeftPos.current = ref.current.scrollLeft;
-    ref.current.style.cursor = 'grabbing';
-  };
-
-  const handleMouseUp = (ref: React.RefObject<HTMLDivElement | null>) => {
-    isDragging.current = false;
-    if (ref.current) {
-      ref.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseLeave = (ref: React.RefObject<HTMLDivElement | null>) => {
-    isDragging.current = false;
-    if (ref.current) {
-      ref.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement | null>) => {
-    if (!isDragging.current || !ref.current) return;
-    e.preventDefault();
-    const x = e.pageX - ref.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    ref.current.scrollLeft = scrollLeftPos.current - walk;
-  };
-
-  // Scroll button visibility state
+  // Visibilité des boutons de défilement
   const [artistsCanScrollLeft, setArtistsCanScrollLeft] = useState(false);
   const [artistsCanScrollRight, setArtistsCanScrollRight] = useState(true);
   const [tracksCanScrollLeft, setTracksCanScrollLeft] = useState(false);
@@ -123,7 +88,6 @@ function StatsPage() {
     artistsEl?.addEventListener('scroll', handleArtistsScroll);
     tracksEl?.addEventListener('scroll', handleTracksScroll);
 
-    // Initial check
     handleArtistsScroll();
     handleTracksScroll();
 
@@ -141,10 +105,10 @@ function StatsPage() {
 
     const fetchData = async () => {
       try {
-        // Check if recently played is already cached in sessionStorage
+        // Récupération depuis le cache si disponible
         const cachedRecentlyPlayed = sessionStorage.getItem('spotyfusion_recently_played');
 
-        // Always fetch artists and tracks (they depend on timeRange)
+
         const [artists, tracks] = await Promise.all([
           getTopArtists(timeRange, 10),
           getTopTracks(timeRange, 10),
@@ -153,13 +117,12 @@ function StatsPage() {
         setTopArtists(artists);
         setTopTracks(tracks);
 
-        // For recently played, use cache if available, otherwise fetch and cache
+
         if (cachedRecentlyPlayed) {
           setRecentlyPlayed(JSON.parse(cachedRecentlyPlayed));
         } else {
           const recent = await getRecentlyPlayed(5);
           setRecentlyPlayed(recent);
-          // Cache for this session
           sessionStorage.setItem('spotyfusion_recently_played', JSON.stringify(recent));
         }
       } catch (error) {
@@ -202,7 +165,6 @@ function StatsPage() {
 
   return (
     <Box p={8} overflowX="hidden">
-      {/* Header */}
       <Box mb={8}>
         <Text fontSize="2xl" fontWeight="bold" color="spotify.white" mb={2}>
           Vos Statistiques
@@ -212,7 +174,7 @@ function StatsPage() {
         </Text>
       </Box>
 
-      {/* Time Range Tabs */}
+      {/* Sélection de la période */}
       <HStack gap={2} mb={8}>
         {(Object.keys(timeRangeLabels) as TimeRange[]).map((range) => (
           <Button
@@ -238,9 +200,8 @@ function StatsPage() {
         ))}
       </HStack>
 
-      {/* Top Artists */}
       <Box mb={10}>
-        <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
+        <Text fontSize="2xl" fontWeight="bold" color="spotify.white" mb={4}>
           Top 10 Artistes
         </Text>
         <Box position="relative" overflow="hidden">
@@ -251,20 +212,14 @@ function StatsPage() {
             pb={4}
             opacity={dataLoading ? 0.5 : 1}
             transition="opacity 0.2s"
-            cursor="grab"
-            userSelect="none"
-            onMouseDown={(e) => handleMouseDown(e, artistsGridRef)}
-            onMouseUp={() => handleMouseUp(artistsGridRef)}
-            onMouseLeave={() => handleMouseLeave(artistsGridRef)}
-            onMouseMove={(e) => handleMouseMove(e, artistsGridRef)}
             css={{
               scrollbarWidth: 'none',
               '&::-webkit-scrollbar': { display: 'none' },
             }}
           >
             {topArtists.map((artist, index) => (
-              <VStack key={artist.id} minW="115px" gap={3}>
-                <Box position="relative" w="115px" h="115px">
+              <VStack key={artist.id} minW="140px" gap={3}>
+                <Box w="140px" h="140px">
                   <Image
                     src={artist.images[0]?.url || '/default-artist.png'}
                     alt={artist.name}
@@ -276,22 +231,9 @@ function StatsPage() {
                     transition="border-color 0.2s"
                     _hover={{ borderColor: 'spotify.green' }}
                   />
-                  <Badge
-                    position="absolute"
-                    bottom={0}
-                    right={0}
-                    bg="spotify.green"
-                    color="spotify.black"
-                    fontSize="xs"
-                    fontWeight="bold"
-                    px={2}
-                    borderRadius="sm"
-                  >
-                    #{index + 1}
-                  </Badge>
                 </Box>
-                <Text fontSize="xs" color="spotify.white" textAlign="center" maxW="115px" truncate>
-                  {artist.name}
+                <Text fontSize="sm" color="spotify.white" textAlign="center" maxW="140px" truncate>
+                  <Text as="span" color="spotify.white" fontWeight="bold">#{index + 1}.</Text>{' '}{artist.name}
                 </Text>
               </VStack>
             ))}
@@ -344,9 +286,8 @@ function StatsPage() {
         </Box>
       </Box>
 
-      {/* Top Tracks */}
       <Box mb={10}>
-        <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
+        <Text fontSize="2xl" fontWeight="bold" color="spotify.white" mb={4}>
           Top 10 Morceaux
         </Text>
         <Box position="relative" overflow="hidden">
@@ -357,48 +298,29 @@ function StatsPage() {
             pb={4}
             opacity={dataLoading ? 0.5 : 1}
             transition="opacity 0.2s"
-            cursor="grab"
-            userSelect="none"
-            onMouseDown={(e) => handleMouseDown(e, tracksGridRef)}
-            onMouseUp={() => handleMouseUp(tracksGridRef)}
-            onMouseLeave={() => handleMouseLeave(tracksGridRef)}
-            onMouseMove={(e) => handleMouseMove(e, tracksGridRef)}
             css={{
               scrollbarWidth: 'none',
               '&::-webkit-scrollbar': { display: 'none' },
             }}
           >
             {topTracks.map((track, index) => (
-              <VStack key={track.id} minW="120px" gap={2} align="start">
-                <Box position="relative" w="120px" h="120px">
+              <VStack key={track.id} minW="140px" gap={2} align="start">
+                <Box w="140px" h="140px">
                   <Image
                     src={track.album.images[0]?.url || '/default-album.png'}
                     alt={track.album.name}
                     w="100%"
                     h="100%"
-                    borderRadius="md"
+                    borderRadius="full"
                     objectFit="cover"
                     transition="transform 0.2s"
                     _hover={{ transform: 'scale(1.05)' }}
                   />
-                  <Badge
-                    position="absolute"
-                    bottom={1}
-                    left={1}
-                    bg="blackAlpha.700"
-                    color="spotify.white"
-                    fontSize="xs"
-                    fontWeight="bold"
-                    px={2}
-                    borderRadius="sm"
-                  >
-                    #{index + 1}
-                  </Badge>
                 </Box>
-                <Text fontSize="sm" fontWeight="semibold" color="spotify.white" maxW="120px" truncate>
-                  {track.name}
+                <Text fontSize="sm" fontWeight="semibold" color="spotify.white" maxW="140px" truncate>
+                  <Text as="span" color="spotify.white" fontWeight="bold">#{index + 1}.</Text>{' '}{track.name}
                 </Text>
-                <Text fontSize="xs" color="spotify.lightGray" maxW="120px" truncate>
+                <Text fontSize="xs" color="spotify.lightGray" maxW="140px" truncate>
                   {track.artists[0]?.name}
                 </Text>
               </VStack>
@@ -452,13 +374,12 @@ function StatsPage() {
         </Box>
       </Box>
 
-      {/* Recently Played */}
       <Box>
         <Text fontSize="xl" fontWeight="bold" color="spotify.white" mb={4}>
           5 Derniers Titres Écoutés
         </Text>
         <Flex gap={6} flexDir={{ base: 'column', lg: 'row' }} overflow="hidden" maxW="100%">
-          {/* Featured Track */}
+          {/* Titre principal */}
           {recentlyPlayed[0] && (
             <Box flexShrink={0} w={{ base: '100%', lg: '180px' }}>
               <Image
@@ -486,7 +407,7 @@ function StatsPage() {
             </Box>
           )}
 
-          {/* Other Tracks - Limited to 70% width */}
+          {/* Autres titres */}
           <VStack flex={1} gap={2} align="stretch" maxW={{ lg: '70%' }}>
             {recentlyPlayed.slice(1).map((item, index) => (
               <Flex

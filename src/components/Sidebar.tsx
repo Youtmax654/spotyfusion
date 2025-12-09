@@ -130,7 +130,6 @@ export function Sidebar({ user }: SidebarProps) {
                                 <Icon
                                     as={item.icon}
                                     boxSize={5}
-                                    color={isActive ? 'spotify.green' : 'inherit'}
                                 />
                                 <Text whiteSpace="pre-line">{item.label}</Text>
                             </Flex>

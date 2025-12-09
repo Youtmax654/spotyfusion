@@ -357,9 +357,26 @@ function BlindTestPage() {
           <Text fontSize="xl" fontWeight="bold" color="spotify.white">
             {selectedPlaylist?.name}
           </Text>
-          <Text color="spotify.lightGray">
-            {currentQuestionIndex + 1}/{questions.length}
-          </Text>
+
+          {/* Stepper avec barre de progression */}
+          <VStack gap={1} align="flex-end">
+            <Text fontWeight="bold" color="spotify.white" fontSize="sm">
+              {currentQuestionIndex + 1}/{questions.length}
+            </Text>
+            <Box
+              w="80px"
+              h="15px"
+              bg="whiteAlpha.300"
+              overflow="hidden"
+            >
+              <Box
+                h="100%"
+                w={`${((currentQuestionIndex + 1) / questions.length) * 100}%`}
+                bg="white"
+                transition="width 0.3s ease"
+              />
+            </Box>
+          </VStack>
         </HStack>
 
         <Center flexDirection="column" mb={8}>
@@ -389,7 +406,7 @@ function BlindTestPage() {
               />
             </svg>
             <Center position="absolute" top={0} left={0} right={0} bottom={0}>
-              <Text fontSize="4xl" fontWeight="bold" color="spotify.white">
+              <Text fontSize="7xl" fontWeight="bold" color="spotify.white">
                 {timeLeft}
               </Text>
             </Center>
