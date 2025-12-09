@@ -1,6 +1,6 @@
 export const spotifyConfig = {
   clientId: import.meta.env.VITE_SPOTIFY_CLIENT_ID || "",
-  redirectUri: import.meta.env.VITE_SPOTIFY_REDIRECT_URI || "",
+  redirectUri: import.meta.env.VITE_REDIRECT_URI || "",
 };
 
 if (!spotifyConfig.clientId || !spotifyConfig.redirectUri) {
