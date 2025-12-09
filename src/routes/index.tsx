@@ -31,7 +31,7 @@ function RouteComponent() {
         position="absolute"
         w="100%"
         h="100%"
-        opacity="40%"
+        opacity={0.4}
         style={{
           background: "linear-gradient(180deg, #1ECC5C 0%, #121212 66.35%)",
           boxShadow: "4px 0px 20px 0px rgba(0, 0, 0, 0.5)",
