@@ -50,10 +50,9 @@ function LoginPage() {
         src={albumCoversImage}
         alt="Album covers collage"
         position="absolute"
-        top="29%"
+        top="0%"
         right="0%"
-        transform="translateY(-50%)"
-        maxW="800px"
+        maxW="1000px"
         zIndex={1}
         opacity={0.9}
         display={{ base: 'none', lg: 'block' }}
