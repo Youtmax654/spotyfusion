@@ -26,7 +26,7 @@ function RouteComponent() {
       alignItems="center"
       justifyContent="center"
     >
-      {/* Green radial gradient overlay */}
+      {/* Green linear gradient overlay */}
       <Box
         position="absolute"
         w="100%"
