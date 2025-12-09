@@ -38,10 +38,25 @@ const spotifyConfig = defineConfig({
         },
     },
     globalCss: {
+        "*": {
+            margin: 0,
+            padding: 0,
+            boxSizing: "border-box",
+        },
+        html: {
+            colorScheme: "dark",
+        },
         body: {
-            bg: "spotify.dark",
+            minHeight: "100vh",
+            bg: "linear-gradient(180deg, #282828 0%, #191414 100%)",
             color: "spotify.white",
             fontFamily: "body",
+            lineHeight: 1.5,
+            fontWeight: 400,
+        },
+        "#root": {
+            width: "100%",
+            minHeight: "100vh",
         },
     },
 });
