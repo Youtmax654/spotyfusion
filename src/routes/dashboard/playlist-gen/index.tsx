@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Box, Heading, Text, VStack, HStack, Slider, SliderTrack, SliderThumb, Input, Button, Wrap, WrapItem, Alert, List, ListItem, Center, IconButton, Tag, CloseButton } from "@chakra-ui/react";
 
@@ -84,9 +84,76 @@ function RouteComponent() {
   ];
   const [query, setQuery] = useState("");
   const [seeds, setSeeds] = useState<string[]>(["Rock", "Electronic"]);
-  const suggestions = popular.filter(
-    (g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g)
-  );
+
+  const [apiSuggestions, setApiSuggestions] = useState<string[]>([]);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!query) {
+      setApiSuggestions([]);
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setApiSuggestions([]);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (searchAbortRef.current) {
+        searchAbortRef.current.abort();
+      }
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+
+      const q = encodeURIComponent(query);
+      const url = `https://api.spotify.com/v1/search?q=${q}&type=artist%2Ctrack`;
+      fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error(`Spotify search error ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          const artists = (data.artists?.items || []).map(
+            (a: any) => `Artist: ${a.name}`
+          );
+          const tracks = (data.tracks?.items || []).map(
+            (t: any) =>
+              `Track: ${t.name} — ${t.artists?.map((x: any) => x.name).join(", ")}`
+          );
+          // prefer tracks first
+          setApiSuggestions([...tracks, ...artists]);
+        })
+        .catch((err) => {
+          if ((err as any).name !== "AbortError") {
+            console.error("Spotify search failed", err);
+            setApiSuggestions([]);
+          }
+        });
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (searchAbortRef.current) {
+        searchAbortRef.current.abort();
+        searchAbortRef.current = null;
+      }
+    };
+  }, [query]);
+
+  // suggestions now use API when query present, otherwise fallback to popular
+  const suggestions = query
+    ? apiSuggestions.filter(
+        (g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g)
+      )
+    : popular.filter((g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g));
+  // --- end new code ---
 
   function addSeed(s: string) {
     if (seeds.length >= 5) return;
@@ -138,7 +205,7 @@ function RouteComponent() {
 
             <Box position="relative">
               <Input
-                placeholder="Rechercher artistes, pistes ou genres..."
+                placeholder="Rechercher artistes ou pistes..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 bg="#061014"
