@@ -94,4 +94,77 @@ export const spotifyService = {
         const shuffled = allTracks.sort(() => Math.random() - 0.5);
         return shuffled.slice(0, Math.min(limit, 50));
     },
+
+    //Sauvegarde des tracks dans la playlist
+    // Créer une playlist
+    createPlaylist: async (userId: string, name: string, description?: string): Promise<{ id: string; url: string }> => {
+        const accessToken = localStorage.getItem("access_token");
+
+        const response = await fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name,
+                description: description || "Playlist générée par SpotyFusion",
+                public: false,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw {
+                status: response.status,
+                message: errorData.error?.message || "Impossible de créer la playlist.",
+            };
+        }
+
+        const data = await response.json();
+        return {
+            id: data.id,
+            url: data.external_urls?.spotify || "",
+        };
+    },
+
+    // Ajouter des tracks à une playlist
+    addTracksToPlaylist: async (playlistId: string, trackIds: string[]): Promise<void> => {
+        const accessToken = localStorage.getItem("access_token");
+
+        const uris = trackIds.map(id => `spotify:track:${id}`);
+
+        const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ uris }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw {
+                status: response.status,
+                message: errorData.error?.message || "Impossible d'ajouter les titres à la playlist.",
+            };
+        }
+    },
+
+    // Sauvegarder une playlist complète (créer + ajouter tracks)
+    savePlaylist: async (userId: string, name: string, tracks: Track[], description?: string): Promise<{ playlistId: string; playlistUrl: string; tracksAdded: number }> => {
+        // 1. Créer la playlist
+        const playlist = await spotifyService.createPlaylist(userId, name, description);
+
+        // 2. Ajouter les tracks
+        const trackIds = tracks.map(t => t.id);
+        await spotifyService.addTracksToPlaylist(playlist.id, trackIds);
+
+        return {
+            playlistId: playlist.id,
+            playlistUrl: playlist.url,
+            tracksAdded: tracks.length,
+        };
+    },
 }

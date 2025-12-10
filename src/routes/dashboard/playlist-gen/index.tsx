@@ -200,6 +200,46 @@ function RouteComponent() {
     }
   }
 
+  // Save playlist states
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<{ url: string; count: number } | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  async function savePlaylist() {
+    setIsSaving(true);
+    setSaveResult(null);
+    setSaveError(null);
+
+    try {
+      // Récupérer l'utilisateur courant
+      const user = await spotifyService.getUserProfile();
+      if (!user) {
+        throw new Error("Utilisateur non connecté");
+      }
+
+      // Générer un nom de playlist avec la date
+      const now = new Date();
+      const playlistName = `SpotifyFusion - ${now.toLocaleDateString("fr-FR")}`;
+
+      const result = await spotifyService.savePlaylist(
+        user.id,
+        playlistName,
+        tracks,
+        `Playlist générée avec ${seeds.join(", ")} • Energy: ${Math.round(energy * 100)}%`
+      );
+
+      setSaveResult({
+        url: result.playlistUrl,
+        count: result.tracksAdded,
+      });
+    } catch (err) {
+      const errorMessage = (err as { message?: string })?.message || "Impossible de sauvegarder la playlist.";
+      setSaveError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <Box minH="100vh" bg="#0B0E0F" color="#E6E6E6" fontFamily="Inter, system-ui" p={6}>
       <VStack align="stretch" spaceX={4} spaceY={4}>
@@ -376,6 +416,61 @@ function RouteComponent() {
                   </Box>
                 ))}
               </VStack>
+            )}
+
+            {/* Bouton Sauvegarder et messages */}
+            {tracks.length > 0 && !isLoading && (
+              <Box mt={6}>
+                {saveResult ? (
+                  <Alert.Root status="success" borderRadius="8px" bg="#063F2F" color="#A7F3D0">
+                    <Alert.Indicator />
+                    <Box flex={1}>
+                      <Alert.Title>Playlist sauvegardée avec succès !</Alert.Title>
+                      <Alert.Description>
+                        {saveResult.count} titre{saveResult.count > 1 ? "s" : ""} ajouté{saveResult.count > 1 ? "s" : ""}.{" "}
+                        <a
+                          href={saveResult.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: "underline", fontWeight: 600 }}
+                        >
+                          Ouvrir dans Spotify →
+                        </a>
+                      </Alert.Description>
+                    </Box>
+                  </Alert.Root>
+                ) : saveError ? (
+                  <Alert.Root status="error" borderRadius="8px" bg="#3B1219" color="#FCA5A5" mb={4}>
+                    <Alert.Indicator />
+                    <Box>
+                      <Alert.Title>Erreur de sauvegarde</Alert.Title>
+                      <Alert.Description>{saveError}</Alert.Description>
+                    </Box>
+                  </Alert.Root>
+                ) : null}
+
+                {!saveResult && (
+                  <Button
+                    bg="#1DB954"
+                    color="white"
+                    borderRadius="28px"
+                    onClick={savePlaylist}
+                    disabled={isSaving}
+                    _hover={{ opacity: 0.9 }}
+                    _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
+                    mt={saveError ? 4 : 0}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Spinner size="sm" mr={2} />
+                        Sauvegarde en cours...
+                      </>
+                    ) : (
+                      "💾 Sauvegarder la Playlist"
+                    )}
+                  </Button>
+                )}
+              </Box>
             )}
           </Box>
         </Box>
