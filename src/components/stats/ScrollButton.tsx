@@ -1,4 +1,4 @@
-import { Button, Icon } from "@chakra-ui/react";
+import { IconButton } from "@chakra-ui/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface Props {
@@ -7,29 +7,27 @@ interface Props {
   visible: boolean;
 }
 export default function ScrollButton({ direction, onClick, visible }: Props) {
+  if (!visible) return null;
+
   return (
-    <Button
+    <IconButton
+      aria-label={direction === "left" ? "Scroll left" : "Scroll right"}
       position="absolute"
       left={direction === "left" ? 0 : "auto"}
       right={direction === "right" ? 0 : "auto"}
       top="50%"
       transform="translateY(-50%)"
-      width="48px"
-      height="48px"
-      p={0}
+      width="40px"
+      height="40px"
+      minW="40px"
       borderRadius="full"
-      border="1px solid"
-      borderColor="border.emphasized"
-      bg="spotify.darker"
+      bg="rgba(0, 0, 0, 0.7)"
       color="white"
       onClick={onClick}
-      visibility={visible ? "visible" : "hidden"}
-      zIndex={2}
+      zIndex={10}
+      _hover={{ bg: "rgba(0, 0, 0, 0.9)" }}
     >
-      <Icon
-        as={direction === "left" ? FaChevronLeft : FaChevronRight}
-        boxSize={4}
-      />
-    </Button>
+      {direction === "left" ? <FaChevronLeft /> : <FaChevronRight />}
+    </IconButton>
   );
 }

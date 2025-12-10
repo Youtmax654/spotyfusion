@@ -93,14 +93,14 @@ function StatsPage() {
         <TimeRange />
       </HStack>
 
-      <Stack direction="column" gap={6}>
+      <Stack direction="column" gap={6} width="100%">
         <Text fontSize="2xl" fontWeight="bold" color="spotify.white">
           Top 10 Artistes
         </Text>
         <TopArtistsList topArtists={topArtists} />
       </Stack>
 
-      <Stack direction="column" gap={6}>
+      <Stack direction="column" gap={6} width="100%">
         <Text fontSize="2xl" fontWeight="bold" color="spotify.white">
           Top 10 Morceaux
         </Text>
