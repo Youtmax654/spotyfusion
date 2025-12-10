@@ -121,7 +121,7 @@ async function putPlayerRequest(
   const accessToken = localStorage.getItem("access_token");
   if (!accessToken) return false;
 
-  const response = await fetch(`https://api.spotify.com/v1${endpoint}`, {
+  const response = await fetch(`${SPOTIFY_API_BASE}${endpoint}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
