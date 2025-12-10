@@ -218,6 +218,7 @@ function BlindTestPage() {
           await play(trackUri);
         }
       } else {
+        await pause();
         setGameState("results");
       }
     }, 1500);

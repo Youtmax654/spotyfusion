@@ -40,8 +40,8 @@ export default function Results({
         justify="space-between"
         align="center"
       >
-        <Box bg="#121212" borderRadius="md" px={4} py={2}>
-          <Text fontSize="xl" fontWeight="bold" color="white">
+        <Box bg="white" borderRadius="md" px={4} py={2}>
+          <Text fontSize="xl" fontWeight="bold" color="#121212">
             {score}pts
           </Text>
         </Box>

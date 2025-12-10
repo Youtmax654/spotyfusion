@@ -104,14 +104,14 @@ export default function QuizGame({
 
         {/* Score display */}
         <Box
-          bg="#121212"
+          bg="white"
           border="2px solid"
           borderColor="#b3b3b3"
           borderRadius="full"
           px={6}
           py={2}
         >
-          <Text fontSize="xl" fontWeight="bold" color="white">
+          <Text fontSize="xl" fontWeight="bold" color="#121212">
             {score}pt{score !== 1 && "s"}
           </Text>
         </Box>
