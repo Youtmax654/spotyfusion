@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Box, Heading, Text, VStack, HStack, Slider, SliderTrack, SliderThumb, Input, Button, Wrap, WrapItem, Alert, Center, IconButton, Tag, CloseButton, Spinner, Progress } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, HStack, Slider, Input, Button, Wrap, WrapItem, Alert, Center, Tag, CloseButton, Spinner, Progress } from "@chakra-ui/react";
 import { spotifyService } from "@/services/spotify.service";
 import type { Track, RecommendationsError } from "@/schemas/Recommendations";
 
@@ -169,10 +169,12 @@ function RouteComponent() {
   const [error, setError] = useState<RecommendationsError | null>(null);
 
   async function generate() {
-    console.log("Generating with:", { danceability, energy, valence, seeds });
+    // console.log("Generating with:", { danceability, energy, valence, seeds });
     setIsLoading(true);
     setError(null);
     setTracks([]);
+    setSaveResult(null);
+    setSaveError(null);
 
     try {
       const result = await spotifyService.generateRecommendations({
