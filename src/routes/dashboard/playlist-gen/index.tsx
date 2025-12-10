@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Box, Heading, Text, VStack, HStack, Slider, SliderTrack, SliderThumb, Input, Button, Wrap, WrapItem, Alert, List, ListItem, Center, IconButton, Tag, CloseButton } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, HStack, Slider, SliderTrack, SliderThumb, Input, Button, Wrap, WrapItem, Alert, Center, IconButton, Tag, CloseButton, Spinner, Progress } from "@chakra-ui/react";
+import { spotifyService } from "@/services/spotify.service";
+import type { Track, RecommendationsError } from "@/schemas/Recommendations";
 
 export const Route = createFileRoute("/dashboard/playlist-gen/")({
   component: RouteComponent,
@@ -150,8 +152,8 @@ function RouteComponent() {
   // suggestions now use API when query present, otherwise fallback to popular
   const suggestions = query
     ? apiSuggestions.filter(
-        (g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g)
-      )
+      (g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g)
+    )
     : popular.filter((g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g));
   // --- end new code ---
 
@@ -164,17 +166,38 @@ function RouteComponent() {
     setSeeds((p) => p.filter((x) => x !== s));
   }
 
-  const [generated, setGenerated] = useState<string[] | null>(null);
-  function generate() {
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<RecommendationsError | null>(null);
+
+  async function generate() {
     console.log("Generating with:", { danceability, energy, valence, seeds });
-    setGenerated(null);
-    setTimeout(() => {
-      if (seeds.length === 0) {
-        setGenerated([]);
+    setIsLoading(true);
+    setError(null);
+    setTracks([]);
+
+    try {
+      const result = await spotifyService.generateRecommendations({
+        seeds,
+        danceability,
+        energy,
+        valence,
+        limit: 30,
+      });
+      setTracks(result);
+    } catch (err) {
+      const recommendationsError = err as RecommendationsError;
+      if (recommendationsError.status === 400) {
+        setError(recommendationsError);
       } else {
-        setGenerated([`Track 1 — ${seeds[0]}`, `Track 2 — ${seeds[seeds.length - 1]}`, `Track 3 — Mix`]);
+        setError({
+          status: 500,
+          message: "Une erreur inattendue s'est produite. Veuillez réessayer.",
+        });
       }
-    }, 600);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -278,7 +301,23 @@ function RouteComponent() {
               Recommandations
             </Text>
 
-            {generated === null ? (
+            {isLoading ? (
+              <Center flexDirection="column" color="gray.400" py={6}>
+                <Spinner size="lg" color="#10B981" mb={4} />
+                <Text fontWeight={700} color="#E6E6E6" mb={2}>Génération en cours...</Text>
+                <Text textAlign="center" maxW="560px" fontSize="sm">
+                  Recherche de titres correspondant à vos critères
+                </Text>
+              </Center>
+            ) : error ? (
+              <Alert.Root status="error" borderRadius="8px" bg="#3B1219" color="#FCA5A5">
+                <Alert.Indicator />
+                <Box>
+                  <Alert.Title>Erreur {error.status}</Alert.Title>
+                  <Alert.Description>{error.message}</Alert.Description>
+                </Box>
+              </Alert.Root>
+            ) : tracks.length === 0 ? (
               <Center flexDirection="column" color="gray.400" py={6}>
                 <Text fontSize="3xl" mb={2}>♫</Text>
                 <Text fontWeight={700} color="#E6E6E6" mb={2}>Aucune recommandation pour le moment</Text>
@@ -286,20 +325,57 @@ function RouteComponent() {
                   Configurez vos préférences et ajoutez des semences, puis cliquez sur "Générer les recommandations"
                 </Text>
               </Center>
-            ) : generated.length === 0 ? (
-              <Center flexDirection="column" color="gray.400" py={6}>
-                <Text fontSize="3xl" mb={2}>⚠️</Text>
-                <Text fontWeight={700} color="#E6E6E6" mb={2}>Aucune recommandation trouvée</Text>
-                <Text textAlign="center" maxW="560px" fontSize="sm">Essayez d'ajouter d'autres semences ou d'ajuster les sliders</Text>
-              </Center>
             ) : (
-              <List.Root spaceX={3} spaceY={3}>
-                {generated.map((t) => (
-                  <List.Item key={t} bg="#061014" borderRadius="8px" p={3} color="#D1FAE5">
-                    {t}
-                  </List.Item>
+              <VStack align="stretch" spaceY={2}>
+                <Text fontSize="sm" color="gray.400" mb={2}>
+                  {tracks.length} titre{tracks.length > 1 ? "s" : ""} trouvé{tracks.length > 1 ? "s" : ""}
+                </Text>
+                {tracks.map((track) => (
+                  <Box
+                    key={track.id}
+                    bg="#061014"
+                    borderRadius="8px"
+                    p={4}
+                    display="flex"
+                    alignItems="center"
+                    gap={4}
+                    _hover={{ bg: "#0A1A1F" }}
+                    transition="background 0.2s"
+                  >
+                    {track.albumImageUrl && (
+                      <img
+                        src={track.albumImageUrl}
+                        alt={track.album}
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          borderRadius: "4px",
+                          flexShrink: 0,
+                          objectFit: "cover"
+                        }}
+                      />
+                    )}
+                    <Box flex={1} minW={0}>
+                      <Text fontWeight={600} color="#E6E6E6" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                        {track.name}
+                      </Text>
+                      <Text fontSize="sm" color="gray.400" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                        {track.artist}
+                      </Text>
+                    </Box>
+                    <Box w="120px" flexShrink={0}>
+                      <Text fontSize="xs" color="gray.400" mb={1}>
+                        Energy: {Math.round(track.energyScore * 100)}%
+                      </Text>
+                      <Progress.Root value={track.energyScore * 100} size="sm" borderRadius="full">
+                        <Progress.Track bg="#1A2A2A">
+                          <Progress.Range bg="#10B981" />
+                        </Progress.Track>
+                      </Progress.Root>
+                    </Box>
+                  </Box>
                 ))}
-              </List.Root>
+              </VStack>
             )}
           </Box>
         </Box>
