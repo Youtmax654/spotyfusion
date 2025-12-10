@@ -1,16 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useRef } from 'react';
-import { Box } from '@chakra-ui/react';
-import { getUserPlaylists, getPlaylistTracks } from '../../../services/spotify.service';
-import type { SpotifyPlaylist, SpotifyTrack } from '../../../services/spotify.service';
-import { useSpotifyPlayer } from '../../../hooks/useSpotifyPlayer';
-import { PlaylistSelector, QuizGame, Results } from '../../../components/blindtest';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from "react";
+import { Box } from "@chakra-ui/react";
+import { useSpotifyPlayer } from "../../../hooks/useSpotifyPlayer";
+import PlaylistSelector from "../../../components/blindtest/PlaylistSelector";
+import QuizGame from "../../../components/blindtest/QuizGame";
+import Results from "../../../components/blindtest/Results";
+import type { SpotifyPlaylist, SpotifyTrack } from "@/schemas/Spotify";
+import { spotifyService } from "@/services/spotify.service";
 
-export const Route = createFileRoute('/dashboard/blindtest/')({
+export const Route = createFileRoute("/dashboard/blindtest/")({
   component: BlindTestPage,
 });
 
-type GameState = 'setup' | 'playing' | 'results';
+type GameState = "setup" | "playing" | "results";
 
 interface GameQuestion {
   correctTrack: SpotifyTrack;
@@ -26,9 +28,10 @@ const QUESTIONS_PER_GAME = 10;
 const TIME_PER_QUESTION = 30;
 
 function BlindTestPage() {
-  const [gameState, setGameState] = useState<GameState>('setup');
+  const [gameState, setGameState] = useState<GameState>("setup");
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<SpotifyPlaylist | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] =
+    useState<SpotifyPlaylist | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Game state
@@ -38,17 +41,26 @@ function BlindTestPage() {
   const [timeLeft, setTimeLeft] = useState(TIME_PER_QUESTION);
   const [playedTracks, setPlayedTracks] = useState<PlayedTrack[]>([]);
   const [answered, setAnswered] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<SpotifyTrack | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<SpotifyTrack | null>(
+    null
+  );
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Spotify Web Playback SDK
-  const { isReady, error: playerError, play, pause, activatePlayer, reconnect } = useSpotifyPlayer();
+  const {
+    isReady,
+    error: playerError,
+    play,
+    pause,
+    activatePlayer,
+    reconnect,
+  } = useSpotifyPlayer();
 
   // Auto-reconnect if player is not ready when page loads
   useEffect(() => {
     if (!isReady && !playerError && !loading) {
-      console.log('🔄 BlindTest: Player not ready, attempting reconnect...');
+      console.log("🔄 BlindTest: Player not ready, attempting reconnect...");
       reconnect();
     }
   }, [isReady, playerError, loading, reconnect]);
@@ -57,10 +69,10 @@ function BlindTestPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const playlistsData = await getUserPlaylists();
-        setPlaylists(playlistsData.filter(p => p.tracks.total >= 10));
+        const playlistsData = await spotifyService.getUserPlaylists();
+        setPlaylists(playlistsData.filter((p) => p.tracks.total >= 10));
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
@@ -70,12 +82,12 @@ function BlindTestPage() {
 
   // Timer logic
   useEffect(() => {
-    if (gameState !== 'playing' || answered) {
+    if (gameState !== "playing" || answered) {
       return;
     }
 
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
           // Time's up - process as wrong answer
           clearInterval(timerRef.current!);
@@ -110,7 +122,9 @@ function BlindTestPage() {
     if (!selectedPlaylist) return;
 
     if (!isReady) {
-      alert('Le lecteur Spotify n\'est pas prêt. Assurez-vous d\'avoir un compte Premium et que le SDK est chargé.');
+      alert(
+        "Le lecteur Spotify n'est pas prêt. Assurez-vous d'avoir un compte Premium et que le SDK est chargé."
+      );
       return;
     }
 
@@ -120,9 +134,11 @@ function BlindTestPage() {
     setLoading(true);
 
     try {
-      const tracks = await getPlaylistTracks(selectedPlaylist.id);
+      const tracks = await spotifyService.getPlaylistTracks(
+        selectedPlaylist.id
+      );
       if (tracks.length < 4) {
-        alert('Cette playlist n\'a pas assez de morceaux.');
+        alert("Cette playlist n'a pas assez de morceaux.");
         setLoading(false);
         return;
       }
@@ -130,10 +146,14 @@ function BlindTestPage() {
       const shuffledTracks = shuffleArray(tracks);
       const gameQuestions: GameQuestion[] = [];
 
-      for (let i = 0; i < Math.min(QUESTIONS_PER_GAME, shuffledTracks.length); i++) {
+      for (
+        let i = 0;
+        i < Math.min(QUESTIONS_PER_GAME, shuffledTracks.length);
+        i++
+      ) {
         const correctTrack = shuffledTracks[i];
         const wrongChoices = shuffleArray(
-          shuffledTracks.filter(t => t.id !== correctTrack.id)
+          shuffledTracks.filter((t) => t.id !== correctTrack.id)
         ).slice(0, 3);
 
         const choices = shuffleArray([correctTrack, ...wrongChoices]);
@@ -146,17 +166,17 @@ function BlindTestPage() {
       setTimeLeft(TIME_PER_QUESTION);
       setPlayedTracks([]);
       setAnswered(false);
-      setGameState('playing');
+      setGameState("playing");
 
       // Start playing the first track
       const trackUri = `spotify:track:${gameQuestions[0].correctTrack.id}`;
       const success = await play(trackUri);
       if (!success) {
-        console.error('Failed to start first track');
+        console.error("Failed to start first track");
       }
     } catch (error) {
-      console.error('Error starting game:', error);
-      alert('Erreur lors du démarrage du jeu.');
+      console.error("Error starting game:", error);
+      alert("Erreur lors du démarrage du jeu.");
     } finally {
       setLoading(false);
     }
@@ -174,18 +194,21 @@ function BlindTestPage() {
 
     if (isCorrect) {
       const timeBonus = Math.floor(timeLeft / 3);
-      setScore(prev => prev + 3 + timeBonus);
+      setScore((prev) => prev + 3 + timeBonus);
     }
 
-    setPlayedTracks(prev => [...prev, {
-      track: currentQuestion.correctTrack,
-      wasCorrect: isCorrect
-    }]);
+    setPlayedTracks((prev) => [
+      ...prev,
+      {
+        track: currentQuestion.correctTrack,
+        wasCorrect: isCorrect,
+      },
+    ]);
 
     // Move to next question after a short delay
     setTimeout(async () => {
       if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
+        setCurrentQuestionIndex((prev) => prev + 1);
         setTimeLeft(TIME_PER_QUESTION);
         setAnswered(false);
         setSelectedAnswer(null);
@@ -195,7 +218,7 @@ function BlindTestPage() {
           await play(trackUri);
         }
       } else {
-        setGameState('results');
+        setGameState("results");
       }
     }, 1500);
   };
@@ -208,7 +231,7 @@ function BlindTestPage() {
 
   const resetGame = async () => {
     await pause();
-    setGameState('setup');
+    setGameState("setup");
     setSelectedPlaylist(null);
     setQuestions([]);
     setCurrentQuestionIndex(0);
@@ -236,11 +259,11 @@ function BlindTestPage() {
       position="relative"
       overflowY="auto"
       css={{
-        '&::-webkit-scrollbar': { display: 'none' },
-        scrollbarWidth: 'none',
+        "&::-webkit-scrollbar": { display: "none" },
+        scrollbarWidth: "none",
       }}
     >
-      {gameState === 'setup' && (
+      {gameState === "setup" && (
         <PlaylistSelector
           playlists={playlists}
           selectedPlaylist={selectedPlaylist}
@@ -252,9 +275,9 @@ function BlindTestPage() {
         />
       )}
 
-      {gameState === 'playing' && (
+      {gameState === "playing" && (
         <QuizGame
-          playlistName={selectedPlaylist?.name || ''}
+          playlistName={selectedPlaylist?.name || ""}
           questions={questions}
           currentQuestionIndex={currentQuestionIndex}
           score={score}
@@ -267,10 +290,10 @@ function BlindTestPage() {
         />
       )}
 
-      {gameState === 'results' && (
+      {gameState === "results" && (
         <Results
           score={score}
-          playlistName={selectedPlaylist?.name || ''}
+          playlistName={selectedPlaylist?.name || ""}
           playedTracks={playedTracks}
           onPlayAgain={resetGame}
         />

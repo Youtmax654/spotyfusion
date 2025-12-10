@@ -1,6 +1,15 @@
-import { Box, Flex, Text, VStack, HStack, Button, Image, Center } from '@chakra-ui/react';
-import { FaPlay } from 'react-icons/fa';
-import type { SpotifyTrack } from '../../services/spotify.service';
+import type { SpotifyTrack } from "@/schemas/Spotify";
+import {
+  Box,
+  Flex,
+  Text,
+  VStack,
+  HStack,
+  Button,
+  Image,
+  Center,
+} from "@chakra-ui/react";
+import { FaPlay } from "react-icons/fa";
 
 interface PlayedTrack {
   track: SpotifyTrack;
@@ -31,12 +40,7 @@ export default function Results({
         justify="space-between"
         align="center"
       >
-        <Box
-          bg="#121212"
-          borderRadius="md"
-          px={4}
-          py={2}
-        >
+        <Box bg="#121212" borderRadius="md" px={4} py={2}>
           <Text fontSize="xl" fontWeight="bold" color="white">
             {score}pts
           </Text>
@@ -54,7 +58,7 @@ export default function Results({
         {playedTracks.map(({ track, wasCorrect }, index) => (
           <HStack
             key={`${track.id}-${index}`}
-            bg={wasCorrect ? 'rgba(29, 185, 84, 0.2)' : 'whiteAlpha.50'}
+            bg={wasCorrect ? "rgba(29, 185, 84, 0.2)" : "whiteAlpha.50"}
             borderRadius="lg"
             p={3}
             gap={4}
@@ -72,7 +76,7 @@ export default function Results({
                 {track.name}
               </Text>
               <Text color="#b3b3b3" fontSize="sm">
-                {track.artists.map(a => a.name).join(', ')}
+                {track.artists.map((a) => a.name).join(", ")}
               </Text>
             </Box>
           </HStack>
@@ -89,7 +93,7 @@ export default function Results({
           py={5}
           fontWeight="semibold"
           fontSize="sm"
-          _hover={{ bg: 'gray.100' }}
+          _hover={{ bg: "gray.100" }}
         >
           <FaPlay style={{ marginRight: 10 }} size={12} />
           Rejouer

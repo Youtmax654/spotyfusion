@@ -1,6 +1,6 @@
-import { Box, Text, Grid, Image, Center, Button } from '@chakra-ui/react';
-import { FaPlay, FaCheck, FaLock } from 'react-icons/fa';
-import type { SpotifyPlaylist } from '../../services/spotify.service';
+import type { SpotifyPlaylist } from "@/schemas/Spotify";
+import { Box, Text, Grid, Image, Center, Button } from "@chakra-ui/react";
+import { FaPlay, FaCheck, FaLock } from "react-icons/fa";
 
 interface PlaylistSelectorProps {
   playlists: SpotifyPlaylist[];
@@ -42,18 +42,22 @@ export default function PlaylistSelector({
           </Center>
         ) : (
           <>
-            <Grid templateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4} mb={8}>
-              {playlists.map(playlist => (
+            <Grid
+              templateColumns="repeat(auto-fill, minmax(100px, 1fr))"
+              gap={4}
+              mb={8}
+            >
+              {playlists.map((playlist) => (
                 <Box
                   key={playlist.id}
                   cursor="pointer"
                   onClick={() => onSelectPlaylist(playlist)}
                   position="relative"
                   transition="transform 0.2s"
-                  _hover={{ transform: 'scale(1.05)' }}
+                  _hover={{ transform: "scale(1.05)" }}
                 >
                   <Image
-                    src={playlist.images[0]?.url || '/placeholder.png'}
+                    src={playlist.images[0]?.url || "/placeholder.png"}
                     alt={playlist.name}
                     borderRadius="md"
                     w="100%"
@@ -97,11 +101,19 @@ export default function PlaylistSelector({
               py={5}
               fontWeight="semibold"
               fontSize="sm"
-              _hover={{ bg: 'gray.100' }}
-              _disabled={{ opacity: 0.5, cursor: 'not-allowed', bg: 'gray.400' }}
+              _hover={{ bg: "gray.100" }}
+              _disabled={{
+                opacity: 0.5,
+                cursor: "not-allowed",
+                bg: "gray.400",
+              }}
             >
               <FaPlay style={{ marginRight: 10 }} size={12} />
-              {loading ? 'Chargement...' : isPlayerReady ? 'Commencer le Blind Test' : 'Lecteur non prêt'}
+              {loading
+                ? "Chargement..."
+                : isPlayerReady
+                  ? "Commencer le Blind Test"
+                  : "Lecteur non prêt"}
             </Button>
           </>
         )}
@@ -145,7 +157,8 @@ export default function PlaylistSelector({
                 Compte Premium requis
               </Text>
               <Text color="#b3b3b3" fontSize="sm">
-                Le Blind Test nécessite un abonnement Spotify Premium pour lire les morceaux.
+                Le Blind Test nécessite un abonnement Spotify Premium pour lire
+                les morceaux.
               </Text>
             </Box>
           </Box>

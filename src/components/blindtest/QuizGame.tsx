@@ -1,6 +1,6 @@
-import { Box, Text, VStack, HStack, Button, Center } from '@chakra-ui/react';
-import { FaTimes } from 'react-icons/fa';
-import type { SpotifyTrack } from '../../services/spotify.service';
+import type { SpotifyTrack } from "@/schemas/Spotify";
+import { Box, Text, VStack, HStack, Button, Center } from "@chakra-ui/react";
+import { FaTimes } from "react-icons/fa";
 
 interface GameQuestion {
   correctTrack: SpotifyTrack;
@@ -45,7 +45,7 @@ export default function QuizGame({
           bg="transparent"
           color="#b3b3b3"
           p={2}
-          _hover={{ color: 'white' }}
+          _hover={{ color: "white" }}
         >
           <FaTimes size={24} />
         </Button>
@@ -58,12 +58,7 @@ export default function QuizGame({
           <Text fontWeight="bold" color="white" fontSize="sm">
             {currentQuestionIndex + 1}/{questions.length}
           </Text>
-          <Box
-            w="80px"
-            h="15px"
-            bg="whiteAlpha.300"
-            overflow="hidden"
-          >
+          <Box w="80px" h="15px" bg="whiteAlpha.300" overflow="hidden">
             <Box
               h="100%"
               w={`${((currentQuestionIndex + 1) / questions.length) * 100}%`}
@@ -97,7 +92,7 @@ export default function QuizGame({
               strokeDashoffset={`${2 * Math.PI * 80 * (1 - progressPercentage / 100)}`}
               transform="rotate(-90 90 90)"
               strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 1s linear' }}
+              style={{ transition: "stroke-dashoffset 1s linear" }}
             />
           </svg>
           <Center position="absolute" top={0} left={0} right={0} bottom={0}>
@@ -117,27 +112,27 @@ export default function QuizGame({
           py={2}
         >
           <Text fontSize="xl" fontWeight="bold" color="white">
-            {score}pt{score !== 1 && 's'}
+            {score}pt{score !== 1 && "s"}
           </Text>
         </Box>
       </Center>
 
       {/* Answer choices */}
       <VStack gap={3} maxW="500px" mx="auto">
-        {currentQuestion.choices.map(track => {
+        {currentQuestion.choices.map((track) => {
           const isCorrect = track.id === currentQuestion.correctTrack.id;
           const isSelected = selectedAnswer?.id === track.id;
 
-          let bgColor = 'whiteAlpha.100';
-          let borderColor = 'transparent';
+          let bgColor = "whiteAlpha.100";
+          let borderColor = "transparent";
 
           if (answered) {
             if (isCorrect) {
-              bgColor = 'rgba(29, 185, 84, 0.4)';
-              borderColor = '#1db954';
+              bgColor = "rgba(29, 185, 84, 0.4)";
+              borderColor = "#1db954";
             } else if (isSelected) {
-              bgColor = 'rgba(239, 68, 68, 0.4)';
-              borderColor = '#ef4444';
+              bgColor = "rgba(239, 68, 68, 0.4)";
+              borderColor = "#ef4444";
             }
           }
 
@@ -153,8 +148,8 @@ export default function QuizGame({
               border="2px solid"
               borderColor={borderColor}
               borderRadius="lg"
-              _hover={{ bg: answered ? bgColor : 'whiteAlpha.200' }}
-              _disabled={{ cursor: 'default', opacity: isCorrect ? 1 : 0.5 }}
+              _hover={{ bg: answered ? bgColor : "whiteAlpha.200" }}
+              _disabled={{ cursor: "default", opacity: isCorrect ? 1 : 0.5 }}
               transition="all 0.3s ease"
             >
               {track.name}
