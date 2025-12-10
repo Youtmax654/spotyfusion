@@ -83,7 +83,7 @@ function RouteComponent() {
     "Country",
   ];
   const [query, setQuery] = useState("");
-  const [seeds, setSeeds] = useState<string[]>(["Rock", "Electronic"]);
+  const [seeds, setSeeds] = useState<string[]>([]);
 
   const [apiSuggestions, setApiSuggestions] = useState<string[]>([]);
   const searchAbortRef = useRef<AbortController | null>(null);
