@@ -12,37 +12,45 @@ export const Route = createFileRoute("/dashboard/playlist-gen/")({
 
 function AudioSlider({
   label,
+  value,
   onChange,
   description,
 }: {
   label: string;
+  value: number;
   onChange: (v: number) => void;
   description?: string;
 }) {
   return (
-    <Box bg="#0B1113" borderRadius="10px" p={3} mb={3}>
-      <Slider.Root defaultValue={[0.5]} variant="solid" key={label} colorPalette="green" step={0.01} min={0} max={1} onChange={(v) => onChange(Number(v.nativeEvent.target.value))}>
-        <HStack justify="space-between">
-          <Slider.Label>{label}</Slider.Label>
-          <Slider.ValueText />
-        </HStack>
-        <Slider.Control>
-          <Slider.Track>
-            <Slider.Range />
-          </Slider.Track>
-          <Slider.Thumbs />
-        </Slider.Control>
-      </Slider.Root>
-
+    <Box mb={6}>
       <HStack justify="space-between" mb={2}>
-        <Box>
-          {description && (
-            <Text fontSize="sm" color="gray.400">
-              {description}
-            </Text>
-          )}
+        <Text fontWeight={500} color="#E6E6E6">{label}</Text>
+        <Box bg="#E8E8E8" px={4} py={1} borderRadius="full">
+          <Text fontSize="sm" fontWeight={500} color="#1A1A1A">{value.toFixed(2)}</Text>
         </Box>
       </HStack>
+      <Slider.Root
+        value={[value]}
+        colorPalette="green"
+        step={0.01}
+        min={0}
+        max={1}
+        onValueChange={(details) => onChange(details.value[0])}
+      >
+        <Slider.Control>
+          <Slider.Track bg="#2A2A2A" h="6px" borderRadius="full">
+            <Slider.Range bg="#1DB954" />
+          </Slider.Track>
+          <Slider.Thumbs>
+            <Slider.Thumb index={0} bg="#1DB954" boxSize={4} boxShadow="md" />
+          </Slider.Thumbs>
+        </Slider.Control>
+      </Slider.Root>
+      {description && (
+        <Text fontSize="sm" color="gray.500" mt={3}>
+          {description}
+        </Text>
+      )}
     </Box>
   );
 }
@@ -53,17 +61,18 @@ function SeedTag({ label, onRemove }: { label: string; onRemove?: () => void }) 
       size="md"
       borderRadius="full"
       variant="solid"
-      bg="#063F2F"
-      color="#D1FAE5"
-      mr={2}
+      bg="#10B981"
+      color="white"
+      px={3}
+      py={1}
     >
-      <Tag.Label>{label}</Tag.Label>
+      <Tag.Label fontWeight={500}>{label}</Tag.Label>
       {onRemove && (
         <CloseButton
           aria-label={`Supprimer ${label}`}
-          size="sm"
-          ml={2}
-          variant="ghost"
+          size="xs"
+          ml={1}
+          color="white"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
         />
       )}
@@ -242,44 +251,48 @@ function RouteComponent() {
   }
 
   return (
-    <Box minH="100vh" bg="#0B0E0F" color="#E6E6E6" fontFamily="Inter, system-ui" p={6}>
+    <Box minH="100vh" bg="#121212" color="#E6E6E6" fontFamily="Inter, system-ui" p={6}>
       <VStack align="stretch" spaceX={4} spaceY={4}>
-        <Box>
-          <Heading fontSize="lg">Générateur de Playlists</Heading>
-          <Text color="gray.400" mt={2}>
-            Créez des playlists personnalisées basées sur vos préférences musicales
+        <Box mb={4}>
+          <Heading fontSize="2xl" fontWeight="bold" color="white">Générateur de Playlists</Heading>
+          <Text color="gray.500" mt={2} lineHeight="1.6">
+            Créez des playlists personnalisées basées sur vos<br />préférences musicales
           </Text>
         </Box>
 
         <HStack align="flex-start" spaceX={6} >
-          <Box flex={1} minH="436px" bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
-            <Text fontSize="md" fontWeight={700} mb={3}>
+          <Box flex={1} minH="436px" bg="#1A1A1A" borderRadius="12px" p={6}>
+            <Text fontSize="lg" fontWeight={600} mb={5} color="white">
               Caractéristiques Audio
             </Text>
 
-            <AudioSlider label="Danceability" onChange={setDanceability} description="À quel point la musique est adaptée à la danse" />
-            <AudioSlider label="Energy" onChange={setEnergy} description="Intensité et activité de la musique" />
-            <AudioSlider label="Valence (Positivité)" onChange={setValence} description="Humeur positive ou négative de la musique" />
+            <AudioSlider label="Danceability" value={danceability} onChange={setDanceability} description="À quel point la musique est adaptée à la danse" />
+            <AudioSlider label="Energy" value={energy} onChange={setEnergy} description="Intensité et activité de la musique" />
+            <AudioSlider label="Valence (Positivité)" value={valence} onChange={setValence} description="Humeur positive ou négative de la musique" />
           </Box>
 
-          <Box w="497px" minH="436px" bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
-            <Text fontSize="md" fontWeight={700} mb={3}>
+          <Box w="497px" minH="436px" bg="#1A1A1A" borderRadius="12px" p={6}>
+            <Text fontSize="lg" fontWeight={600} mb={5} color="white">
               Semences
             </Text>
 
             <Box position="relative">
               <Input
-                placeholder="Rechercher artistes ou pistes..."
+                placeholder="Rechercher artistes, pistes ou genres..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                bg="#061014"
+                bg="#2A2A2A"
                 color="#E6E6E6"
-                borderColor="rgba(255,255,255,0.04)"
+                border="1px solid #3A3A3A"
+                borderRadius="8px"
+                h="48px"
+                _placeholder={{ color: "#6B6B6B" }}
+                _focus={{ borderColor: "#1DB954", boxShadow: "none" }}
               />
               {query && (
-                <Box mt={2} bg="#061014" borderRadius="8px" p={2} boxShadow="0 6px 18px rgba(0,0,0,0.6)" zIndex={10} position="absolute" left={0} right={0}>
+                <Box mt={2} bg="#2A2A2A" borderRadius="8px" p={2} boxShadow="0 6px 18px rgba(0,0,0,0.6)" zIndex={10} position="absolute" left={0} right={0}>
                   {suggestions.length ? (
-                    <VStack align="stretch" spaceX={1} spaceY={1}>
+                    <VStack align="stretch" spaceY={1}>
                       {suggestions.map((s) => (
                         <Button key={s} variant="ghost" justifyContent="flex-start" onClick={() => addSeed(s)} color="#E6E6E6">
                           {s}
@@ -295,14 +308,25 @@ function RouteComponent() {
               )}
             </Box>
 
-            <Box mt={4}>
-              <Text color="gray.400" fontSize="sm" mb={2}>
+            <Box mt={5}>
+              <Text color="gray.500" fontSize="sm" mb={3}>
                 Genres populaires :
               </Text>
-              <Wrap>
+              <Wrap gap={2}>
                 {popular.map((g) => (
                   <WrapItem key={g}>
-                    <Button size="sm" bg="#0B1113" color="#D1FAE5" borderRadius="999px" onClick={() => addSeed(g)} >
+                    <Button
+                      size="sm"
+                      bg="transparent"
+                      color="#A0AEC0"
+                      border="1px solid #4A5568"
+                      borderRadius="full"
+                      px={4}
+                      h="32px"
+                      fontWeight={400}
+                      onClick={() => addSeed(g)}
+                      _hover={{ bg: "rgba(255,255,255,0.05)", borderColor: "#718096" }}
+                    >
                       {g}
                     </Button>
                   </WrapItem>
@@ -310,11 +334,11 @@ function RouteComponent() {
               </Wrap>
             </Box>
 
-            <Box mt={4}>
-              <Text color="gray.400" fontSize="sm" mb={2}>
+            <Box mt={5}>
+              <Text color="gray.500" fontSize="sm" mb={3}>
                 Semences sélectionnées :
               </Text>
-              <Wrap>
+              <Wrap gap={2}>
                 {seeds.map((s) => (
                   <WrapItem key={s}>
                     <SeedTag label={s} onRemove={() => removeSeed(s)} />
@@ -323,9 +347,11 @@ function RouteComponent() {
               </Wrap>
             </Box>
 
-            <Alert.Root status="info" mt={4} borderRadius="8px" bg="#07281D" color="#A7F3D0">
-              <Alert.Indicator />
-              <Alert.Title>Ajoutez jusqu'à 5 semences (artistes, pistes ou genres) pour personnaliser vos recommandations</Alert.Title>
+            <Alert.Root status="info" mt={5} borderRadius="8px" bg="#0D3B2E" py={3} px={4}>
+              <Alert.Indicator color="#10B981" />
+              <Text fontSize="sm" color="#A7F3D0" ml={2}>
+                Ajoutez jusqu'à 5 semences (artistes, pistes ou genres) pour personnaliser vos recommandations
+              </Text>
             </Alert.Root>
           </Box>
         </HStack>
@@ -337,7 +363,7 @@ function RouteComponent() {
         </Box>
 
         <Box>
-          <Box bg="#0F1720" borderRadius="12px" p={6} minH="160px">
+          <Box bg="#1A1A1A" borderRadius="12px" p={6} minH="160px">
             {/* Header avec titre et bouton Sauvegarder */}
             <HStack justify="space-between" align="center" mb={4}>
               <Text fontWeight={700} fontSize="xl" color="#E6E6E6">
@@ -398,53 +424,72 @@ function RouteComponent() {
                 </Text>
               </Center>
             ) : (
-              <VStack align="stretch" spaceY={2}>
-                {tracks.map((track) => (
+              <Box>
+                {tracks.map((track, index) => (
                   <Box
                     key={track.id}
-                    bg="#061014"
-                    borderRadius="8px"
-                    p={4}
                     display="flex"
                     alignItems="center"
-                    gap={4}
-                    _hover={{ bg: "#0A1A1F" }}
-                    transition="background 0.2s"
+                    py={4}
+                    px={4}
+                    mb={2}
+                    border="1px solid #3A3A3A"
+                    borderRadius="8px"
+                    _hover={{ bg: "rgba(255,255,255,0.02)", borderColor: "#4A4A4A" }}
+                    transition="all 0.2s"
                   >
-                    {track.albumImageUrl && (
-                      <img
-                        src={track.albumImageUrl}
-                        alt={track.album}
-                        style={{
-                          width: "48px",
-                          height: "48px",
-                          borderRadius: "4px",
-                          flexShrink: 0,
-                          objectFit: "cover"
-                        }}
-                      />
-                    )}
-                    <Box flex={1} minW={0}>
-                      <Text fontWeight={600} color="#E6E6E6" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        {track.name}
-                      </Text>
-                      <Text fontSize="sm" color="gray.400" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        {track.artist}
-                      </Text>
-                    </Box>
-                    <Box w="120px" flexShrink={0}>
-                      <Text fontSize="xs" color="gray.400" mb={1}>
-                        Energy: {Math.round(track.energyScore * 100)}%
-                      </Text>
-                      <Progress.Root value={track.energyScore * 100} size="sm" borderRadius="full">
-                        <Progress.Track bg="#1A2A2A">
-                          <Progress.Range bg="#10B981" />
-                        </Progress.Track>
-                      </Progress.Root>
-                    </Box>
+                    {/* Numéro de ligne */}
+                    <Text w="40px" color="gray.500" fontSize="sm" textAlign="center" flexShrink={0}>
+                      {index + 1}
+                    </Text>
+
+                    {/* Image album + Titre/Artiste */}
+                    <HStack flex={1} minW={0} gap={3}>
+                      {track.albumImageUrl && (
+                        <img
+                          src={track.albumImageUrl}
+                          alt={track.album}
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            borderRadius: "4px",
+                            flexShrink: 0,
+                            objectFit: "cover"
+                          }}
+                        />
+                      )}
+                      <Box minW={0}>
+                        <Text fontWeight={600} color="white" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          {track.name}
+                        </Text>
+                        <Text fontSize="sm" color="gray.500" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          {track.artist}
+                        </Text>
+                      </Box>
+                    </HStack>
+
+                    {/* Artiste (colonne séparée) */}
+                    <Text w="180px" color="gray.400" fontSize="sm" textAlign="center" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" flexShrink={0}>
+                      {track.artist}
+                    </Text>
+
+                    {/* Durée (simulée) */}
+                    <Text w="60px" color="gray.400" fontSize="sm" textAlign="center" flexShrink={0}>
+                      {`${Math.floor(Math.random() * 2) + 3}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`}
+                    </Text>
+
+                    {/* Score Energy avec icône wave */}
+                    <HStack w="80px" justify="flex-end" flexShrink={0}>
+                      <Text color="#1DB954" fontSize="sm">〰</Text>
+                      <Box bg="#1DB954" px={2} py={0.5} borderRadius="full">
+                        <Text fontSize="xs" fontWeight={600} color="white">
+                          {track.energyScore.toFixed(2)}
+                        </Text>
+                      </Box>
+                    </HStack>
                   </Box>
                 ))}
-              </VStack>
+              </Box>
             )}
 
             {/* Messages de confirmation/erreur */}
