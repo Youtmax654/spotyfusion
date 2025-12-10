@@ -149,13 +149,11 @@ function RouteComponent() {
     };
   }, [query]);
 
-  // suggestions now use API when query present, otherwise fallback to popular
   const suggestions = query
     ? apiSuggestions.filter(
       (g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g)
     )
     : popular.filter((g) => g.toLowerCase().includes(query.toLowerCase()) && !seeds.includes(g));
-  // --- end new code ---
 
   function addSeed(s: string) {
     if (seeds.length >= 5) return;
@@ -200,7 +198,6 @@ function RouteComponent() {
     }
   }
 
-  // Save playlist states
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{ url: string; count: number } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);

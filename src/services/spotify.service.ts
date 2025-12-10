@@ -46,7 +46,12 @@ export const spotifyService = {
 
         // Rechercher des tracks pour chaque genre sélectionné
         for (const genre of params.seeds) {
-            const query = encodeURIComponent(`genre:${genre.toLowerCase()}`);
+            let query;
+            if (genre.startsWith("Artist:") || genre.startsWith("Track:")) {
+                query = encodeURIComponent(`${genre.toLowerCase()}`);
+            } else{
+                query = encodeURIComponent(`genre:${genre.toLowerCase()}`);
+            }
             const response = await fetch(
                 `https://api.spotify.com/v1/search?q=${query}&type=track&limit=${Math.ceil(limit / params.seeds.length)}&market=FR`,
                 {
