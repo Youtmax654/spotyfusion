@@ -145,7 +145,6 @@ const connect = async () => {
   const hashed = await sha256(codeVerifier);
   const codeChallenge = base64encode(hashed);
 
-  const scope = "user-read-private user-read-email";
   const authUrl = new URL("https://accounts.spotify.com/authorize");
 
   // generated in the previous step
@@ -154,7 +153,7 @@ const connect = async () => {
   const params = {
     response_type: "code",
     client_id: spotifyConfig.clientId,
-    scope,
+    scope: spotifyConfig.scopes,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
     redirect_uri: spotifyConfig.redirectUri,

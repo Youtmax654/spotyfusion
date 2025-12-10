@@ -16,6 +16,18 @@ const config = defineConfig({
         primary: {
           value: "#1DB954",
         },
+        spotify: {
+          green: { value: "#1DB954" },
+          greenDark: { value: "#1ed760" },
+          black: { value: "#191414" },
+          dark: { value: "#121212" },
+          panel: { value: "#181818" },
+          darker: { value: "#242424" },
+          gray: { value: "#282828" },
+          lightGray: { value: "#b3b3b3" },
+          white: { value: "#ffffff" },
+          border: { value: "#ffffff1a" },
+        },
       },
     },
   },
