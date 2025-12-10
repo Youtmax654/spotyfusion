@@ -7,11 +7,16 @@ import MusicNoteIcon from "@/icons/MusicNoteIcon";
 import PlaylistIcon from "@/icons/PlaylistIcon";
 import StatsIcon from "@/icons/StatsIcon";
 import { spotifyService } from "@/services/spotify.service";
-import { HStack, Separator, Stack, VStack } from "@chakra-ui/react";
+import { Center, HStack, Separator, Spinner, Stack, VStack } from "@chakra-ui/react";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
+  pendingComponent: () => (
+    <Center h="100vh" bg="black">
+      <Spinner size="xl" color="green.500" borderWidth="4px" />
+    </Center>
+  ),
   staleTime: Infinity,
   loader: async () => {
     try {
