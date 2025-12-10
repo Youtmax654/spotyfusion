@@ -1,4 +1,5 @@
 import StarIcon from "@/icons/StarIcon";
+import SaveIcon from "@/icons/SaveIcon";
 import React, { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Box, Heading, Text, VStack, HStack, Slider, Input, Button, Wrap, WrapItem, Alert, Center, Tag, CloseButton, Spinner, Progress } from "@chakra-ui/react";
@@ -337,9 +338,40 @@ function RouteComponent() {
 
         <Box>
           <Box bg="#0F1720" borderRadius="12px" p={6} minH="160px">
-            <Text fontWeight={700} mb={4} color="#E6E6E6">
-              Recommandations
-            </Text>
+            {/* Header avec titre et bouton Sauvegarder */}
+            <HStack justify="space-between" align="center" mb={4}>
+              <Text fontWeight={700} fontSize="xl" color="#E6E6E6">
+                Recommandations {tracks.length > 0 && `(${tracks.length})`}
+              </Text>
+
+              {/* Bouton Sauvegarder - visible uniquement quand il y a des tracks */}
+              {tracks.length > 0 && !isLoading && !saveResult && (
+                <Button
+                  bg="white"
+                  color="#1a1a1a"
+                  borderRadius="24px"
+                  px={5}
+                  py={2}
+                  onClick={savePlaylist}
+                  disabled={isSaving}
+                  _hover={{ bg: "#f0f0f0" }}
+                  _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
+                  fontWeight={500}
+                >
+                  {isSaving ? (
+                    <>
+                      <Spinner size="sm" mr={2} color="#1a1a1a" />
+                      Sauvegarde...
+                    </>
+                  ) : (
+                    <>
+                      <SaveIcon boxSize={5} mr={2} />
+                      Sauvegarder la Playlist
+                    </>
+                  )}
+                </Button>
+              )}
+            </HStack>
 
             {isLoading ? (
               <Center flexDirection="column" color="gray.400" py={6}>
@@ -367,9 +399,6 @@ function RouteComponent() {
               </Center>
             ) : (
               <VStack align="stretch" spaceY={2}>
-                <Text fontSize="sm" color="gray.400" mb={2}>
-                  {tracks.length} titre{tracks.length > 1 ? "s" : ""} trouvé{tracks.length > 1 ? "s" : ""}
-                </Text>
                 {tracks.map((track) => (
                   <Box
                     key={track.id}
@@ -418,8 +447,8 @@ function RouteComponent() {
               </VStack>
             )}
 
-            {/* Bouton Sauvegarder et messages */}
-            {tracks.length > 0 && !isLoading && (
+            {/* Messages de confirmation/erreur */}
+            {tracks.length > 0 && !isLoading && (saveResult || saveError) && (
               <Box mt={6}>
                 {saveResult ? (
                   <Alert.Root status="success" borderRadius="8px" bg="#063F2F" color="#A7F3D0">
@@ -440,7 +469,7 @@ function RouteComponent() {
                     </Box>
                   </Alert.Root>
                 ) : saveError ? (
-                  <Alert.Root status="error" borderRadius="8px" bg="#3B1219" color="#FCA5A5" mb={4}>
+                  <Alert.Root status="error" borderRadius="8px" bg="#3B1219" color="#FCA5A5">
                     <Alert.Indicator />
                     <Box>
                       <Alert.Title>Erreur de sauvegarde</Alert.Title>
@@ -448,28 +477,6 @@ function RouteComponent() {
                     </Box>
                   </Alert.Root>
                 ) : null}
-
-                {!saveResult && (
-                  <Button
-                    bg="#1DB954"
-                    color="white"
-                    borderRadius="28px"
-                    onClick={savePlaylist}
-                    disabled={isSaving}
-                    _hover={{ opacity: 0.9 }}
-                    _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
-                    mt={saveError ? 4 : 0}
-                  >
-                    {isSaving ? (
-                      <>
-                        <Spinner size="sm" mr={2} />
-                        Sauvegarde en cours...
-                      </>
-                    ) : (
-                      "💾 Sauvegarder la Playlist"
-                    )}
-                  </Button>
-                )}
               </Box>
             )}
           </Box>
