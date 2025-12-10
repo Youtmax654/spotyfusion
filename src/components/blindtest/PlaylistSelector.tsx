@@ -1,6 +1,6 @@
 import type { SpotifyPlaylist } from "@/schemas/Spotify";
-import { Box, Text, Grid, Image, Center, Button } from "@chakra-ui/react";
-import { FaPlay, FaCheck, FaLock } from "react-icons/fa";
+import { Box, Button, Center, Grid, Image, Text } from "@chakra-ui/react";
+import { FaCheck, FaLock, FaPlay } from "react-icons/fa";
 
 interface PlaylistSelectorProps {
   playlists: SpotifyPlaylist[];
@@ -23,15 +23,15 @@ export default function PlaylistSelector({
 }: PlaylistSelectorProps) {
   return (
     <Box>
-      <Text fontSize="2xl" fontWeight="bold" color="white" mb={2}>
+      <Text fontSize="4xl" fontWeight="bold" color="spotify.white">
         Blind Test
       </Text>
-      <Text color="#b3b3b3" mb={8}>
+      <Text fontSize="md" fontWeight="normal" color="spotify.lightGray">
         Testez vos connaissances musicales en devinant les morceaux
       </Text>
 
       {/* Conteneur avec position relative pour l'overlay */}
-      <Box position="relative" minH="70vh">
+      <Box position="relative" minH="70vh" mt={6}>
         <Text fontSize="lg" fontWeight="semibold" color="white" mb={4}>
           Mes playlists
         </Text>

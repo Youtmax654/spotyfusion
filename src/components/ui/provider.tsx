@@ -18,7 +18,7 @@ const config = defineConfig({
         },
         spotify: {
           green: { value: "#1DB954" },
-          greenDark: { value: "#1ed760" },
+          greenDark: { value: "#22683b" },
           black: { value: "#191414" },
           dark: { value: "#121212" },
           panel: { value: "#181818" },

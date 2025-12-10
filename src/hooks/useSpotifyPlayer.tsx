@@ -1,11 +1,11 @@
-import { getAccessToken, refreshAccessToken } from "@/services/spotify.service";
+import { getAccessToken, refreshAccessToken } from "@/lib/auth";
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 

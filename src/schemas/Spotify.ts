@@ -64,3 +64,21 @@ export interface SpotifyDevice {
   name: string;
   type: string;
 }
+
+export interface SpotifySearchResult {
+  artists?: {
+    items: SpotifyArtist[];
+  };
+  tracks?: {
+    items: SpotifyTrack[];
+  };
+  playlists?: {
+    items: SpotifyPlaylist[];
+  };
+}
+
+export interface Seed {
+  type: "artist" | "track" | "genre";
+  id: string;
+  name: string;
+}
