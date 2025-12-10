@@ -16,8 +16,16 @@ export default function ArtistAvatar({ artist, index }: Props) {
   }
 
   return (
-    <VStack minW="120px" gap={3}>
-      <Box w="120px" h="120px">
+    <VStack minW="120px" gap={3} overflow="visible">
+      <Box
+        w="120px"
+        h="120px"
+        cursor="pointer"
+        transition="all 0.2s ease-in-out"
+        _hover={{
+          transform: "scale(1.08)",
+        }}
+      >
         <Image
           src={artist.images[0]?.url || "/default-artist.png"}
           alt={artist.name}

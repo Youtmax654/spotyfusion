@@ -17,8 +17,16 @@ export default function TrackAvatar({ track, index }: Props) {
   }
 
   return (
-    <VStack minW="120px" gap={2} align="start">
-      <Box w="120px" h="120px">
+    <VStack minW="120px" gap={2} align="start" overflow="visible">
+      <Box
+        w="120px"
+        h="120px"
+        cursor="pointer"
+        transition="all 0.2s ease-in-out"
+        _hover={{
+          transform: "scale(1.08)",
+        }}
+      >
         <Image
           src={track.album.images[0]?.url || "/default-album.png"}
           alt={track.album.name}
