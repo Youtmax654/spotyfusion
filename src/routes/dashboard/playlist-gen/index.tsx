@@ -1,3 +1,4 @@
+import StarIcon from "@/icons/StarIcon";
 import React, { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Box, Heading, Text, VStack, HStack, Slider, Input, Button, Wrap, WrapItem, Alert, Center, Tag, CloseButton, Spinner, Progress } from "@chakra-ui/react";
@@ -249,8 +250,8 @@ function RouteComponent() {
           </Text>
         </Box>
 
-        <HStack align="flex-start" spaceX={6} spaceY={6}>
-          <Box flex={1} bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
+        <HStack align="flex-start" spaceX={6} >
+          <Box flex={1} minH="436px" bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
             <Text fontSize="md" fontWeight={700} mb={3}>
               Caractéristiques Audio
             </Text>
@@ -260,7 +261,7 @@ function RouteComponent() {
             <AudioSlider label="Valence (Positivité)" onChange={setValence} description="Humeur positive ou négative de la musique" />
           </Box>
 
-          <Box w="360px" bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
+          <Box w="497px" minH="436px" bg="#0F1720" borderRadius="12px" p={5} boxShadow="0 1px 0 rgba(255,255,255,0.02)">
             <Text fontSize="md" fontWeight={700} mb={3}>
               Semences
             </Text>
@@ -329,8 +330,8 @@ function RouteComponent() {
         </HStack>
 
         <Box mt={4}>
-          <Button bg="#10B981" color="#061014" borderRadius="28px" onClick={generate} _hover={{ opacity: 0.9 }}>
-            🎧 Générer les recommandations
+          <Button bg="#ffffffff" color="#061014" borderRadius="28px" onClick={generate} _hover={{ opacity: 0.9 }}>
+            <StarIcon /> Générer les recommandations
           </Button>
         </Box>
 
