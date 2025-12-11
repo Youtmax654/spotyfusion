@@ -24,6 +24,11 @@ export interface SpotifyTrack {
   is_playable?: boolean;
 }
 
+export interface TrackWithScore {
+  track: SpotifyTrack;
+  score: number;
+}
+
 export interface SpotifyPlaylist {
   id: string;
   name: string;

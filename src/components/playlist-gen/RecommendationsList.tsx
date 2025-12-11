@@ -1,10 +1,10 @@
 import SaveIcon from "@/icons/SaveIcon";
 import { Button, Card, HStack, Icon, Text } from "@chakra-ui/react";
 import RecommendationItem from "./recommendations-list/RecommendationItem";
-import type { SpotifyTrack } from "@/schemas/Spotify";
+import type { TrackWithScore } from "@/schemas/Spotify";
 
 interface Props {
-  recommendations: SpotifyTrack[];
+  recommendations: TrackWithScore[];
 }
 export default function RecommendationsList({ recommendations }: Props) {
   return (
@@ -26,12 +26,12 @@ export default function RecommendationsList({ recommendations }: Props) {
           </Button>
         </HStack>
 
-        {recommendations.map((track, index) => (
+        {recommendations.map((item, index) => (
           <RecommendationItem
             key={index}
             index={index + 1}
-            track={track}
-            score={100}
+            track={item.track}
+            score={item.score}
           />
         ))}
       </Card.Body>

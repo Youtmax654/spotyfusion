@@ -59,7 +59,7 @@ export default function RecommendationItem({
       {/* Duration */}
       <Flex w="16" flex={1} align="center">
         <Text color="spotify.lightGray" fontSize="sm">
-          {track?.duration_ms / 1000}
+          {(track?.duration_ms / 60000).toFixed(2).split(".").join(":")}
         </Text>
       </Flex>
 

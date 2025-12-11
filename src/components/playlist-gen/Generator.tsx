@@ -1,5 +1,5 @@
 import StarsIcon from "@/icons/StarsIcon";
-import type { Seed, SpotifyTrack } from "@/schemas/Spotify";
+import type { Seed, TrackWithScore } from "@/schemas/Spotify";
 import { Button, Icon, Stack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import AudioFeatures from "./generator/AudioFeatures";
@@ -7,7 +7,7 @@ import Seeds from "./generator/Seeds";
 import { getRecommendations } from "@/services/spotify.service";
 
 interface Props {
-  onRecommendationsChange: (recommendations: SpotifyTrack[]) => void;
+  onRecommendationsChange: (recommendations: TrackWithScore[]) => void;
 }
 
 export default function Generator({ onRecommendationsChange }: Props) {

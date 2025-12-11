@@ -1,4 +1,4 @@
-import type { SpotifyTrack } from "@/schemas/Spotify";
+import type { TrackWithScore } from "@/schemas/Spotify";
 import Generator from "@/components/playlist-gen/Generator";
 import RecommendationsList from "@/components/playlist-gen/RecommendationsList";
 import { Box, Text, VStack } from "@chakra-ui/react";
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/dashboard/playlist-gen/")({
 });
 
 function RouteComponent() {
-  const [recommendations, setRecommendations] = useState<SpotifyTrack[]>([]);
+  const [recommendations, setRecommendations] = useState<TrackWithScore[]>([]);
 
   return (
     <VStack

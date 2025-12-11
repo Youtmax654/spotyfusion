@@ -282,7 +282,7 @@ async function fetchCandidatesFromArtists(
 // Main recommendation function
 export async function getRecommendations(
   options: import("@/schemas/Spotify").RecommendationOptions
-): Promise<SpotifyTrack[]> {
+): Promise<import("@/schemas/Spotify").TrackWithScore[]> {
   const { targets, seeds, limit = 20, market = "FR" } = options;
 
   const candidateMap = new Map<string, SpotifyTrack>();
@@ -315,6 +315,21 @@ export async function getRecommendations(
   // 3. Rank by relevance
   const sortedTracks = rankTracksByEstimatedRelevance(enrichedTracks, targets);
 
-  // 4. Return top results
-  return sortedTracks.map((item) => item.track).slice(0, limit);
+  // 4. Return top results with meaningful scores (0-100)
+  const topTracks = sortedTracks.slice(0, limit);
+
+  if (topTracks.length === 0) return [];
+
+  // Use exponential decay for better score distribution
+  // Best match gets 100, scores decay exponentially
+  return topTracks.map((item, index) => {
+    // Exponential decay: score = 100 * e^(-k * rank)
+    // where k controls decay rate (0.05 gives good distribution)
+    const score = Math.round(100 * Math.exp(-0.05 * index));
+
+    return {
+      track: item.track,
+      score: Math.max(1, score) // Minimum score of 1
+    };
+  });
 }
