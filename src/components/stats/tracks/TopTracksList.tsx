@@ -87,10 +87,13 @@ export default function TopTracksList({ topTracks }: Props) {
         ref={scrollRef}
         gap={5}
         overflowX="auto"
+        py={3}
+        px={2}
         css={{
           scrollbarWidth: "none",
           "&::-webkit-scrollbar": { display: "none" },
           msOverflowStyle: "none",
+          overflowY: "visible",
         }}
       >
         {topTracks.map((track, index) => (

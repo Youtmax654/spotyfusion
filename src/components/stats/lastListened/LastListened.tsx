@@ -11,7 +11,7 @@ export default function LastListened({ recentlyPlayed }: Props) {
     <Flex
       gap={4}
       flexDir={{ base: "column", lg: "row" }}
-      overflow="hidden"
+      overflow="visible"
       maxW="100%"
     >
       {recentlyPlayed[0] && (
@@ -31,7 +31,7 @@ export default function LastListened({ recentlyPlayed }: Props) {
           />
           <VStack align="start" gap={2}>
             <Text
-              fontSize="3xl"
+              fontSize="1xl"
               fontWeight="semibold"
               color="spotify.white"
               lineHeight="short"
@@ -50,7 +50,7 @@ export default function LastListened({ recentlyPlayed }: Props) {
         </Box>
       )}
 
-      <VStack flex={1} gap={3} align="stretch">
+      <VStack flex={1} gap={3} align="stretch" overflow="visible">
         {recentlyPlayed.slice(1).map((item, index) => (
           <Flex
             key={`${item.track.id}-${index}`}
@@ -62,6 +62,13 @@ export default function LastListened({ recentlyPlayed }: Props) {
             borderColor="spotify.border"
             width="100%"
             borderRadius="md"
+            cursor="pointer"
+            transition="all 0.2s ease-in-out"
+            _hover={{
+              transform: "scale(1.02)",
+              bg: "rgba(255, 255, 255, 0.08)",
+              borderColor: "spotify.green",
+            }}
           >
             <Image
               src={item.track.album.images[0]?.url || "/default-album.png"}

@@ -40,21 +40,23 @@ export default function QuizGame({
   return (
     <Box>
       <HStack justify="space-between" mb={8}>
-        <Button
-          onClick={onReset}
-          bg="transparent"
-          color="#b3b3b3"
-          p={2}
-          _hover={{ color: "white" }}
-        >
-          <FaTimes size={24} />
-        </Button>
-        <Text fontSize="xl" fontWeight="bold" color="white">
+        <Box flex={1}>
+          <Button
+            onClick={onReset}
+            bg="transparent"
+            color="#b3b3b3"
+            p={2}
+            _hover={{ color: "white" }}
+          >
+            <FaTimes size={24} />
+          </Button>
+        </Box>
+        <Text fontSize="xl" fontWeight="bold" color="white" textAlign="center">
           {playlistName}
         </Text>
 
         {/* Stepper avec barre de progression */}
-        <VStack gap={1} align="flex-end">
+        <VStack gap={1} align="flex-end" flex={1}>
           <Text fontWeight="bold" color="white" fontSize="sm">
             {currentQuestionIndex + 1}/{questions.length}
           </Text>

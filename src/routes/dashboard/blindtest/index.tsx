@@ -9,6 +9,12 @@ import type { SpotifyPlaylist, SpotifyTrack } from "@/schemas/Spotify";
 import { spotifyService } from "@/services/spotify.service";
 
 export const Route = createFileRoute("/dashboard/blindtest/")({
+  loader: async () => {
+    const playlistsData = await spotifyService.getUserPlaylists();
+    // Filtrer les playlists qui ont au moins 10 morceaux
+    const playlists = playlistsData.filter((p) => p.tracks.total >= 10);
+    return { playlists };
+  },
   component: BlindTestPage,
 });
 
@@ -28,11 +34,13 @@ const QUESTIONS_PER_GAME = 10;
 const TIME_PER_QUESTION = 30;
 
 function BlindTestPage() {
+  // Récupérer les playlists depuis le loader
+  const { playlists } = Route.useLoaderData();
+
   const [gameState, setGameState] = useState<GameState>("setup");
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] =
     useState<SpotifyPlaylist | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Game state
   const [questions, setQuestions] = useState<GameQuestion[]>([]);
@@ -59,26 +67,11 @@ function BlindTestPage() {
 
   // Auto-reconnect if player is not ready when page loads
   useEffect(() => {
-    if (!isReady && !playerError && !loading) {
+    if (!isReady && !playerError) {
       console.log("🔄 BlindTest: Player not ready, attempting reconnect...");
       reconnect();
     }
-  }, [isReady, playerError, loading, reconnect]);
-
-  // Load playlists
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const playlistsData = await spotifyService.getUserPlaylists();
-        setPlaylists(playlistsData.filter((p) => p.tracks.total >= 10));
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
+  }, [isReady, playerError, reconnect]);
 
   // Timer logic
   useEffect(() => {
