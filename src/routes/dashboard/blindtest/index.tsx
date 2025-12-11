@@ -6,11 +6,11 @@ import PlaylistSelector from "../../../components/blindtest/PlaylistSelector";
 import QuizGame from "../../../components/blindtest/QuizGame";
 import Results from "../../../components/blindtest/Results";
 import type { SpotifyPlaylist, SpotifyTrack } from "@/schemas/Spotify";
-import { spotifyService } from "@/services/spotify.service";
+import { getPlaylistTracks, getUserPlaylists } from "@/services/spotify.service";
 
 export const Route = createFileRoute("/dashboard/blindtest/")({
   loader: async () => {
-    const playlistsData = await spotifyService.getUserPlaylists();
+    const playlistsData = await getUserPlaylists();
     // Filtrer les playlists qui ont au moins 10 morceaux
     const playlists = playlistsData.filter((p) => p.tracks.total >= 10);
     return { playlists };
@@ -127,7 +127,7 @@ function BlindTestPage() {
     setLoading(true);
 
     try {
-      const tracks = await spotifyService.getPlaylistTracks(
+      const tracks = await getPlaylistTracks(
         selectedPlaylist.id
       );
       if (tracks.length < 4) {

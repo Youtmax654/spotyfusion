@@ -3,7 +3,8 @@ import LastListened from "@/components/stats/lastListened/LastListened";
 import TimeRange from "@/components/stats/TimeRange";
 import TopTracksList from "@/components/stats/tracks/TopTracksList";
 import { statsSearchSchema } from "@/schemas/TimeRange";
-import { spotifyService } from "@/services/spotify.service";
+import { getRecentlyPlayed } from "@/services/player.service";
+import { getTopArtists, getTopTracks } from "@/services/spotify.service";
 import { Box, HStack, Stack, Text, VStack } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -12,9 +13,9 @@ export const Route = createFileRoute("/dashboard/stats/")({
   loaderDeps: ({ search: { range } }) => ({ range }),
   loader: async ({ deps: { range } }) => {
     const [topArtists, topTracks, recentlyPlayed] = await Promise.all([
-      spotifyService.getTopArtists(range, 10),
-      spotifyService.getTopTracks(range, 10),
-      spotifyService.getRecentlyPlayed(5),
+      getTopArtists(range, 10),
+      getTopTracks(range, 10),
+      getRecentlyPlayed(5),
     ]);
 
     return { topArtists, topTracks, recentlyPlayed };

@@ -7,7 +7,7 @@ import MenuIcon from "@/icons/MenuIcon";
 import MusicNoteIcon from "@/icons/MusicNoteIcon";
 import PlaylistIcon from "@/icons/PlaylistIcon";
 import StatsIcon from "@/icons/StatsIcon";
-import { spotifyService } from "@/services/spotify.service";
+import { getUserProfile } from "@/services/spotify.service";
 import {
   Center,
   Drawer,
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/dashboard")({
   staleTime: Infinity,
   loader: async () => {
     try {
-      const user = await spotifyService.getUserProfile();
+      const user = await getUserProfile();
       return { user };
     } catch (error) {
       console.error("Error fetching user profile:", error);

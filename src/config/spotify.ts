@@ -8,11 +8,15 @@ export const spotifyConfig = {
     "user-read-recently-played",
     "playlist-read-private",
     "playlist-read-collaborative",
+    "playlist-modify-private",
+    "playlist-modify-public",
     "streaming",
     "user-read-playback-state",
     "user-modify-playback-state",
   ].join(" "),
 };
+
+export const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
 
 if (!spotifyConfig.clientId || !spotifyConfig.redirectUri) {
   console.error(
