@@ -21,12 +21,7 @@ export default function Seeds({ selectedSeeds, setSelectedSeeds }: Props) {
   };
 
   return (
-    <Card.Root
-      width="100%"
-      bg="spotify.darker"
-      borderRadius="12px"
-      height="430px"
-    >
+    <Card.Root width="100%" bg="spotify.darker" borderRadius="12px">
       <Card.Body padding="16px" gap="24px">
         <Text fontWeight="bold" fontSize="xl">
           Semences

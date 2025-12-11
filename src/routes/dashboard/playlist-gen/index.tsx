@@ -1,3 +1,4 @@
+import type { SpotifyTrack } from "@/schemas/Spotify";
 import Generator from "@/components/playlist-gen/Generator";
 import RecommendationsList from "@/components/playlist-gen/RecommendationsList";
 import { Box, Text, VStack } from "@chakra-ui/react";
@@ -9,15 +10,7 @@ export const Route = createFileRoute("/dashboard/playlist-gen/")({
 });
 
 function RouteComponent() {
-  const [recommendations, setRecommendations] = useState([]);
-
-  const fetchRecommendations = async () => {
-    // Simulate fetching recommendations
-    const fakeRecommendations = [
-      /* ... */
-    ];
-    setRecommendations(fakeRecommendations);
-  };
+  const [recommendations, setRecommendations] = useState<SpotifyTrack[]>([]);
 
   return (
     <VStack
@@ -45,7 +38,7 @@ function RouteComponent() {
       </Box>
 
       <Box width="100%">
-        <Generator />
+        <Generator onRecommendationsChange={setRecommendations} />
       </Box>
 
       <Box width="100%">

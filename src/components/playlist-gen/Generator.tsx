@@ -1,11 +1,16 @@
 import StarsIcon from "@/icons/StarsIcon";
-import type { Seed } from "@/schemas/Spotify";
-import { Button, HStack, Icon, Text, VStack } from "@chakra-ui/react";
+import type { Seed, SpotifyTrack } from "@/schemas/Spotify";
+import { Button, Icon, Stack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import AudioFeatures from "./generator/AudioFeatures";
 import Seeds from "./generator/Seeds";
+import { getRecommendations } from "@/services/spotify.service";
 
-export default function Generator() {
+interface Props {
+  onRecommendationsChange: (recommendations: SpotifyTrack[]) => void;
+}
+
+export default function Generator({ onRecommendationsChange }: Props) {
   const [audioFeatures, setAudioFeatures] = useState({
     danceability: [0.5],
     energy: [0.5],
@@ -14,13 +19,24 @@ export default function Generator() {
 
   const [selectedSeeds, setSelectedSeeds] = useState<Seed[]>([]);
 
-  const handleGenerate = () => {
-    // Logic to generate playlist recommendations based on audio features and seeds
+  const handleGenerate = async () => {
+    try {
+      const recommendations = await getRecommendations({
+        targets: audioFeatures,
+        seeds: selectedSeeds
+      });
+
+      onRecommendationsChange(recommendations);
+    } catch (error) {
+      console.error("Error generating recommendations:", error);
+    }
   };
+
+  const hasSeeds = selectedSeeds.length > 0;
 
   return (
     <VStack alignItems={"start"} gap="24px">
-      <HStack gap="24px" width="100%" height="100%">
+      <Stack flexDirection="row" gap="24px" width="100%" height="100%">
         <AudioFeatures
           audioFeatures={audioFeatures}
           setAudioFeatures={setAudioFeatures}
@@ -29,19 +45,25 @@ export default function Generator() {
           selectedSeeds={selectedSeeds}
           setSelectedSeeds={setSelectedSeeds}
         />
-      </HStack>
+      </Stack>
 
       <Button
-        bg="white"
-        width="322px"
-        height="63px"
+        bg={hasSeeds ? "white" : "gray.600"}
+        color={hasSeeds ? "black" : "gray.400"}
+        size="2xl"
         borderRadius="full"
         gap={2}
         onClick={handleGenerate}
+        disabled={!hasSeeds}
+        cursor={hasSeeds ? "pointer" : "not-allowed"}
+        _hover={hasSeeds ? { bg: "gray.100" } : {}}
+        opacity={hasSeeds ? 1 : 0.6}
       >
-        <Icon as={StarsIcon} boxSize={6} color="black" />
-        <Text color="black" fontWeight="medium" fontSize="md">
-          Générer les recommandations
+        <Icon as={StarsIcon} boxSize={6} />
+        <Text fontWeight="medium" fontSize="md">
+          {hasSeeds
+            ? "Générer les recommandations"
+            : "Sélectionnez au moins une semence"}
         </Text>
       </Button>
     </VStack>

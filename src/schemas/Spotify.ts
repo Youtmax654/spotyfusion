@@ -14,13 +14,14 @@ export interface SpotifyArtist {
 export interface SpotifyTrack {
   id: string;
   name: string;
-  artists: { name: string }[];
+  artists: { name: string; id: string }[];
   album: {
     name: string;
     images: SpotifyImage[];
   };
   duration_ms: number;
   preview_url: string | null;
+  is_playable?: boolean;
 }
 
 export interface SpotifyPlaylist {
@@ -81,4 +82,18 @@ export interface Seed {
   type: "artist" | "track" | "genre";
   id: string;
   name: string;
+}
+
+// Recommendation Service Types
+export interface RecommendationTargets {
+  danceability: number[];
+  energy: number[];
+  valence: number[];
+}
+
+export interface RecommendationOptions {
+  targets: RecommendationTargets;
+  seeds: Seed[];
+  limit?: number;
+  market?: string;
 }
