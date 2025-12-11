@@ -25,7 +25,7 @@ interface SpotifyPlayerInstance {
 }
 
 interface SpotifyPlayerConstructor {
-  new (options: {
+  new(options: {
     name: string;
     getOAuthToken: (callback: (token: string) => void) => void;
     volume?: number;

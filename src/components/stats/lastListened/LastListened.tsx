@@ -31,7 +31,7 @@ export default function LastListened({ recentlyPlayed }: Props) {
           />
           <VStack align="start" gap={2}>
             <Text
-              fontSize="3xl"
+              fontSize="1xl"
               fontWeight="semibold"
               color="spotify.white"
               lineHeight="short"
