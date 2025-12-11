@@ -6,6 +6,7 @@ import type {
   SpotifyUser
 } from "@/schemas/Spotify";
 import { fetchWithAccessToken } from "./base.service";
+import { SPOTIFY_API_BASE } from "@/config/spotify";
 
 // User Profile
 export async function getUserProfile(): Promise<SpotifyUser | null> {
@@ -332,4 +333,68 @@ export async function getRecommendations(
       score: Math.max(1, score) // Minimum score of 1
     };
   });
+}
+
+// Create a new playlist
+export async function createPlaylist(
+  userId: string,
+  name: string,
+  description?: string,
+  isPublic: boolean = false
+): Promise<SpotifyPlaylist> {
+  const accessToken = localStorage.getItem("access_token");
+  if (!accessToken) {
+    throw new Error("No access token");
+  }
+
+  const response = await fetch(
+    `${SPOTIFY_API_BASE}/users/${userId}/playlists`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        description,
+        public: isPublic,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to create playlist");
+  }
+
+  return response.json() as Promise<SpotifyPlaylist>;
+}
+
+// Add tracks to a playlist
+export async function addTracksToPlaylist(
+  playlistId: string,
+  trackUris: string[]
+): Promise<void> {
+  const accessToken = localStorage.getItem("access_token");
+  if (!accessToken) {
+    throw new Error("No access token");
+  }
+
+  const response = await fetch(
+    `${SPOTIFY_API_BASE}/playlists/${playlistId}/tracks`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uris: trackUris,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to add tracks to playlist");
+  }
 }

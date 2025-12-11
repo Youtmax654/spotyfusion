@@ -8,6 +8,8 @@ export const spotifyConfig = {
     "user-read-recently-played",
     "playlist-read-private",
     "playlist-read-collaborative",
+    "playlist-modify-private",
+    "playlist-modify-public",
     "streaming",
     "user-read-playback-state",
     "user-modify-playback-state",

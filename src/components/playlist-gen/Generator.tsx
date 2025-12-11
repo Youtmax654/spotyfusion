@@ -16,11 +16,13 @@ export default function Generator({ onRecommendationsChange }: Props) {
     energy: [0.5],
     valence: [0.5],
   });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [selectedSeeds, setSelectedSeeds] = useState<Seed[]>([]);
 
   const handleGenerate = async () => {
     try {
+      setIsGenerating(true);
       const recommendations = await getRecommendations({
         targets: audioFeatures,
         seeds: selectedSeeds
@@ -29,6 +31,8 @@ export default function Generator({ onRecommendationsChange }: Props) {
       onRecommendationsChange(recommendations);
     } catch (error) {
       console.error("Error generating recommendations:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -55,6 +59,7 @@ export default function Generator({ onRecommendationsChange }: Props) {
         gap={2}
         onClick={handleGenerate}
         disabled={!hasSeeds}
+        loading={isGenerating}
         cursor={hasSeeds ? "pointer" : "not-allowed"}
         _hover={hasSeeds ? { bg: "gray.100" } : {}}
         opacity={hasSeeds ? 1 : 0.6}
