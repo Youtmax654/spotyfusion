@@ -42,7 +42,7 @@ function StatsPage() {
       }}
     >
       <Box gap={2}>
-        <Text fontSize="4xl" fontWeight="bold" color="spotify.white">
+        <Text fontSize="3xl" fontWeight="bold" color="spotify.white">
           Vos Statistiques
         </Text>
         <Text fontSize="md" fontWeight="normal" color="spotify.lightGray">

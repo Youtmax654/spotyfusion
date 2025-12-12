@@ -72,7 +72,7 @@ export default function QuizGame({
       </HStack>
 
       <Center flexDirection="column" mb={8}>
-        {/* Circular timer */}
+        {/* Timer circulaire */}
         <Box position="relative" w="180px" h="180px" mb={4}>
           <svg width="180" height="180" viewBox="0 0 180 180">
             <circle
@@ -104,7 +104,7 @@ export default function QuizGame({
           </Center>
         </Box>
 
-        {/* Score display */}
+        {/* Affichage du score */}
         <Box
           bg="white"
           borderRadius="lg"
@@ -117,7 +117,7 @@ export default function QuizGame({
         </Box>
       </Center>
 
-      {/* Answer choices */}
+      {/* Affichage des réponses possibles */}
       <VStack gap={3} maxW="500px" mx="auto">
         {currentQuestion.choices.map((track) => {
           const isCorrect = track.id === currentQuestion.correctTrack.id;

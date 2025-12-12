@@ -9,6 +9,8 @@ import type { SpotifyPlaylist, SpotifyTrack } from "@/schemas/Spotify";
 import { getPlaylistTracks, getUserPlaylists } from "@/services/spotify.service";
 
 export const Route = createFileRoute("/dashboard/blindtest/")({
+  // Force le rechargement à chaque navigation pour voir les nouvelles playlists
+  shouldReload: true,
   loader: async () => {
     const playlistsData = await getUserPlaylists();
     // Filtrer les playlists qui ont au moins 10 morceaux
@@ -42,7 +44,7 @@ function BlindTestPage() {
     useState<SpotifyPlaylist | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Game state
+  // Etat du blindtest
   const [questions, setQuestions] = useState<GameQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -65,7 +67,7 @@ function BlindTestPage() {
     reconnect,
   } = useSpotifyPlayer();
 
-  // Auto-reconnect if player is not ready when page loads
+  // Auto-reconnect si la page ne charge pas
   useEffect(() => {
     if (!isReady && !playerError) {
       console.log("🔄 BlindTest: Player not ready, attempting reconnect...");
@@ -73,7 +75,7 @@ function BlindTestPage() {
     }
   }, [isReady, playerError, reconnect]);
 
-  // Timer logic
+  // Timer
   useEffect(() => {
     if (gameState !== "playing" || answered) {
       return;
@@ -82,9 +84,9 @@ function BlindTestPage() {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Time's up - process as wrong answer
+          //Temps écoulé
           clearInterval(timerRef.current!);
-          // Use setTimeout to avoid state update during render
+          //On utilise setTimeout pour éviter la mise à jour du state pendant le rendu
           setTimeout(() => {
             if (!answered) {
               processAnswer(null);
@@ -99,9 +101,9 @@ function BlindTestPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, answered, currentQuestionIndex]);
 
+  //Shuffle des réponses
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -116,12 +118,12 @@ function BlindTestPage() {
 
     if (!isReady) {
       alert(
-        "Le lecteur Spotify n'est pas prêt. Assurez-vous d'avoir un compte Premium et que le SDK est chargé."
+        "Le lecteur Spotify n'est pas prêt. Assurez-vous d'avoir un compte Premium."
       );
       return;
     }
 
-    // Activate player element (needed for browsers)
+    // Activation du player
     await activatePlayer();
 
     setLoading(true);
@@ -161,7 +163,7 @@ function BlindTestPage() {
       setAnswered(false);
       setGameState("playing");
 
-      // Start playing the first track
+      //Première musique du blindtest 
       const trackUri = `spotify:track:${gameQuestions[0].correctTrack.id}`;
       const success = await play(trackUri);
       if (!success) {
@@ -198,7 +200,7 @@ function BlindTestPage() {
       },
     ]);
 
-    // Move to next question after a short delay
+    // Passage à la question suivante après 1.5sec ou passage aux résultats si dernière question
     setTimeout(async () => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
@@ -233,12 +235,10 @@ function BlindTestPage() {
     setPlayedTracks([]);
   };
 
-  // Cleanup on unmount - stop music when leaving the page
+  // Arret de la musique et reset du timer
   useEffect(() => {
     return () => {
-      // Stop any playing music when unmounting
       pause();
-      // Clear any running timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;

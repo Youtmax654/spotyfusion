@@ -23,8 +23,8 @@ export default function PlaylistSelector({
 }: PlaylistSelectorProps) {
   return (
     <Box>
-      <Text fontSize="4xl" fontWeight="bold" color="spotify.white">
-        Blind Test
+      <Text fontSize="3xl" fontWeight="bold" color="spotify.white">
+        Blind Test Musical
       </Text>
       <Text fontSize="md" fontWeight="normal" color="spotify.lightGray">
         Testez vos connaissances musicales en devinant les morceaux
@@ -67,14 +67,14 @@ export default function PlaylistSelector({
                   {selectedPlaylist?.id === playlist.id && (
                     <Center
                       position="absolute"
-                      bottom={2}
+                      bottom={8}
                       right={2}
-                      w={6}
-                      h={6}
+                      w={8}
+                      h={8}
                       bg="#1db954"
                       borderRadius="full"
                     >
-                      <FaCheck size={12} color="black" />
+                      <FaCheck size={14} color="black" />
                     </Center>
                   )}
                   <Text
