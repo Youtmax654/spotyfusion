@@ -31,11 +31,11 @@ export default function LastListened({ recentlyPlayed }: Props) {
           />
           <VStack align="start" gap={2}>
             <Text
-              fontSize="1xl"
+              fontSize="2xl"
               fontWeight="semibold"
               color="spotify.white"
               lineHeight="short"
-              truncate
+              wordBreak="break-word"
             >
               {recentlyPlayed[0].track.name}
             </Text>

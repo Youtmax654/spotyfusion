@@ -107,9 +107,7 @@ export default function QuizGame({
         {/* Score display */}
         <Box
           bg="white"
-          border="2px solid"
-          borderColor="#b3b3b3"
-          borderRadius="full"
+          borderRadius="lg"
           px={6}
           py={2}
         >
