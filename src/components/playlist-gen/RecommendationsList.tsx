@@ -9,6 +9,7 @@ import {
   getUserProfile,
 } from "@/services/spotify.service";
 import { toaster } from "@/components/ui/toaster";
+import SingleMusicNote from "@/icons/SingleMusicNote";
 
 interface Props {
   recommendations: TrackWithScore[];
@@ -66,6 +67,35 @@ export default function RecommendationsList({ recommendations }: Props) {
       setIsSaving(false);
     }
   };
+
+  // Empty state
+  if (recommendations.length === 0) {
+    return (
+      <Card.Root width="100%" bg="spotify.darker" borderRadius="12px">
+        <Card.Body
+          padding="100px"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="24px"
+        >
+          <Text fontWeight="bold" fontSize="xl" color="white">
+            Recommandations
+          </Text>
+          <Icon as={SingleMusicNote} boxSize={16} color="spotify.lightGray" />
+          <Text fontSize="xl" color="spotify.lightGray">
+            Aucune recommandation pour le moment
+          </Text>
+          <Text fontSize="sm" color="spotify.lightGray" textAlign="center">
+            Configurez vos préférences et ajoutez des semences,
+            <br />
+            puis cliquez sur "Générer les recommandations"
+          </Text>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
 
   return (
     <Card.Root width="100%" bg="spotify.darker" borderRadius="12px">
